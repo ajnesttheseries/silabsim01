@@ -6,6 +6,7 @@ import * as THREE from 'three'
 import { CATALOG, type ComponentType, type LedColor, type ResistorValue } from '../engine/circuit/catalog'
 import { useLab } from '../store/lab'
 import { DataFlow } from './DataFlow'
+import { GuideMarkers } from './GuideMarkers'
 import { prefersReducedMotion, useInteract } from './interact'
 import { CAMERAS } from './layout'
 import { Breadboard, BoardModel } from './models/boards'
@@ -159,6 +160,7 @@ function SceneContent({ quality }: { quality: 'low' | 'mid' | 'high' }) {
       <WindowCurtain />
       <Walker />
       <DataFlow />
+      <GuideMarkers />
       <HoverLabel />
       <CameraRig />
       <DragController />

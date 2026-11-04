@@ -84,7 +84,7 @@ export default function Staff() {
     downloadText(
       `aiot-lab-results-${new Date().toISOString().slice(0, 10)}.csv`,
       toCsv(
-        ['ชื่อเล่น', 'โรงเรียน', 'เริ่ม', 'จบ', 'เวลา (วินาที)', 'คะแนนแบบทดสอบ', 'เต็ม', 'ภารกิจที่ผ่าน', 'โจทย์ท้าทาย', 'คะแนนทดสอบอัตโนมัติ', 'ใช้คำใบ้'],
+        ['ชื่อเล่น', 'โรงเรียน', 'เริ่ม', 'จบ', 'เวลา (วินาที)', 'คะแนนแบบทดสอบ', 'เต็ม', 'ภารกิจที่ผ่าน', 'โจทย์ท้าทาย', 'คะแนนทดสอบอัตโนมัติ', 'ใช้คำใบ้', 'ใช้โหมดพาทำ'],
         rows.map((r) => [
           r.nickname,
           r.school,
@@ -97,6 +97,7 @@ export default function Staff() {
           r.challenge,
           r.autoScore,
           r.hintsUsed,
+          r.guided ? 'ใช่' : 'ไม่',
         ]),
       ),
     )
@@ -184,7 +185,7 @@ export default function Staff() {
           <table className="w-full min-w-[640px] text-left text-sm">
             <thead className="text-cyan-200">
               <tr>
-                {['ชื่อเล่น', 'โรงเรียน', 'วันที่', 'เวลา', 'คะแนน', 'ภารกิจ', 'โจทย์ท้าทาย'].map((h) => (
+                {['ชื่อเล่น', 'โรงเรียน', 'วันที่', 'เวลา', 'คะแนน', 'ภารกิจ', 'โจทย์ท้าทาย', 'โหมด'].map((h) => (
                   <th key={h} className="px-2 py-1">
                     {h}
                   </th>
@@ -203,11 +204,12 @@ export default function Staff() {
                   <td className="px-2 py-1 text-xs">
                     {r.challenge === 'plant' ? 'กระถาง' : r.challenge === 'classroom' ? 'ห้องเรียน' : '–'} {r.autoScore != null && `(${r.autoScore}/4)`}
                   </td>
+                  <td className="px-2 py-1 text-xs">{r.guided ? '🧭 พาทำ' : '💪 ทำเอง'}</td>
                 </tr>
               ))}
               {!rows.length && (
                 <tr>
-                  <td colSpan={7} className="px-2 py-4 text-center text-slate-400">
+                  <td colSpan={8} className="px-2 py-4 text-center text-slate-400">
                     ยังไม่มีผลที่บันทึกไว้
                   </td>
                 </tr>

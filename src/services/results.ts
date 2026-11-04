@@ -17,6 +17,8 @@ export interface ResultRecord {
   challenge: string | null
   autoScore: number | null
   hintsUsed: number
+  /** used guided step-by-step mode for at least one mission */
+  guided?: boolean
 }
 
 const KEY = 'aiot-lab-results-v1'
@@ -68,6 +70,7 @@ export async function saveResult(r: ResultRecord): Promise<{ local: boolean; rem
       challenge: r.challenge,
       auto_score: r.autoScore,
       hints_used: r.hintsUsed,
+      guided: r.guided ?? false,
     })
     if (error) return { local, remote: 'error', error: error.message }
     return { local, remote: 'ok' }
@@ -94,5 +97,6 @@ export async function fetchRemoteResults(): Promise<ResultRecord[] | { error: st
     challenge: (d.challenge as string) ?? null,
     autoScore: d.auto_score == null ? null : Number(d.auto_score),
     hintsUsed: Number(d.hints_used ?? 0),
+    guided: Boolean(d.guided),
   }))
 }

@@ -5,6 +5,7 @@ import { FINAL_QUIZ, MINI_QUIZ, scoreQuiz, type QuizQuestion } from '../../engin
 import { SCENARIOS, type Challenge } from '../../engine/scenarios'
 import { missionCtx, useLab } from '../../store/lab'
 import { Btn, Modal, Pill, Section } from '../common'
+import { GuidePanelSection } from '../guide'
 
 function MissionMap() {
   const progress = useLab((s) => s.progress)
@@ -435,6 +436,7 @@ export function MissionPanel() {
           </Btn>
         )}
       </Section>
+      <GuidePanelSection />
       {m.id === 1 && <Mission1Extras />}
       {m.id === 2 && <Mission2Extras />}
       {m.id === 3 && <Mission3Extras />}

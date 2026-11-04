@@ -5,8 +5,8 @@ import type { CircuitState, Wire, WireColor } from './netlist'
 let n = 0
 const w = (a: string, b: string, color: WireColor): Wire => ({ id: `sw${++n}`, a, b, color })
 
-const RAILS_TOP: Wire[] = [w('mcu:3V3', 'bb:tp1', 'red'), w('mcu:GND1', 'bb:tn1', 'black')]
-const RAILS_BOTTOM: Wire[] = [w('mcu:3V3B', 'bb:bp1', 'red'), w('mcu:GND3', 'bb:bn1', 'black')]
+export const RAILS_TOP: Wire[] = [w('mcu:3V3', 'bb:tp1', 'red'), w('mcu:GND1', 'bb:tn1', 'black')]
+export const RAILS_BOTTOM: Wire[] = [w('mcu:3V3B', 'bb:bp1', 'red'), w('mcu:GND3', 'bb:bn1', 'black')]
 
 export const LED_RED: { comps: PlacedComponent[]; wires: Wire[] } = {
   comps: [

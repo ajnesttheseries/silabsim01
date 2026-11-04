@@ -17,7 +17,7 @@ function pinsOf(c: PlacedComponent): Record<string, V3> | null {
   return out
 }
 
-function OnBoardPart({ comp, look }: { comp: PlacedComponent; look: PartLook }) {
+export function OnBoardPart({ comp, look }: { comp: PlacedComponent; look: PartLook }) {
   const ledState = useLab((s) => s.simView.actuators.leds[comp.id])
   const buzzerOn = useLab((s) => s.simView.actuators.buzzer)
   const pins = useMemo(() => pinsOf(comp), [comp])

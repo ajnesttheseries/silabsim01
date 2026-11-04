@@ -22,6 +22,7 @@ import { CAMERAS, type CameraPreset } from '../scene/layout'
 import { WIRE_HEX } from '../scene/models/boards'
 import { missionCtx, useLab, type Selection } from '../store/lab'
 import { Btn, ByteBot } from './common'
+import { GuideCard } from './guide'
 
 export function describeNode(node: string, comps: PlacedComponent[]): string {
   if (node.startsWith('bb:')) return `เบรดบอร์ด ${describeHole(node)}`
@@ -468,6 +469,7 @@ function Helper() {
 }
 
 export function SceneOverlay() {
+  const guided = useLab((s) => s.guided)
   return (
     <div className="pointer-events-none absolute inset-0 z-10 flex flex-col justify-between p-2">
       <div className="flex flex-col items-start gap-2">
@@ -475,9 +477,12 @@ export function SceneOverlay() {
         <SelectionCard />
       </div>
       <div className="flex flex-col items-center gap-2">
+        <div className="hidden lg:block">
+          <GuideCard />
+        </div>
         <Banner />
         <div className="flex w-full flex-col items-start gap-2 sm:flex-row sm:flex-wrap sm:items-end sm:justify-between">
-          <Helper />
+          {guided ? <span /> : <Helper />}
           <div className="self-center sm:self-auto">
             <Toolbar />
           </div>

@@ -1,6 +1,8 @@
 import type { ThreeEvent } from '@react-three/fiber'
 import { CATALOG, type ShelfItem } from '../engine/circuit/catalog'
 import { useLab } from '../store/lab'
+import { useGuideView } from '../ui/guide'
+import { Beacon } from './GuideMarkers'
 import { useInteract } from './interact'
 import { BIN_W, binPos, SHELF, SHELF_ORDER } from './layout'
 import { LED_HEX } from './models/parts'
@@ -161,6 +163,7 @@ function Bin({ item, index }: { item: ShelfItem; index: number }) {
   const p = binPos(index)
   const selected = useLab((s) => s.selection?.kind === 'shelf' && s.selection.item === item)
   const found = useLab((s) => s.progress.found.includes(item))
+  const guideHere = useGuideView((s) => s.g?.current?.shelf === item)
   const lbl = labelTexture(CATALOG[item].nameTh, { w: 512, h: 128, bg: found ? '#0b3b5c' : '#0e2247' })
   const w = BIN_W * 0.9
   const onDown = (e: ThreeEvent<PointerEvent>) => {
@@ -211,6 +214,7 @@ function Bin({ item, index }: { item: ShelfItem; index: number }) {
         <planeGeometry args={[w * 0.95, w * 0.24]} />
         <meshBasicMaterial map={lbl} toneMapped={false} />
       </mesh>
+      {guideHere && <Beacon pos={[0, 0.1, SHELF.depth * 0.3]} scale={1.3} />}
       {found && (
         <mesh position={[w * 0.4, 0.3, SHELF.depth * 0.42]}>
           <sphereGeometry args={[0.05, 10, 8]} />

@@ -1,6 +1,7 @@
 import { lazy, Suspense, useEffect, useRef, useState } from 'react'
 import { useSimLoop } from '../sim/useSimLoop'
 import { useLab, type PanelTab } from '../store/lab'
+import { GuideCard, GuideSync } from './guide'
 import { CircuitPanel } from './panels/CircuitPanel'
 import { EnvPanel } from './panels/EnvPanel'
 import { MissionPanel } from './panels/MissionPanel'
@@ -113,9 +114,9 @@ function Panel({ desktop }: { desktop: boolean }) {
       </aside>
     )
 
-  const h = sheet === 'peek' ? 'h-[106px]' : sheet === 'half' ? 'h-[46%]' : 'h-[82%]'
+  const h = sheet === 'peek' ? 'max-h-[45%]' : sheet === 'half' ? 'h-[50%]' : 'h-[82%]'
   return (
-    <section className={`flex shrink-0 flex-col rounded-t-3xl border-t border-cyan-400/30 bg-ink-950/98 transition-[height] duration-300 ${h}`}>
+    <section className={`flex shrink-0 flex-col overflow-hidden rounded-t-3xl border-t border-cyan-400/30 bg-ink-950/98 transition-[height] duration-300 ${h}`}>
       <button
         aria-label="ปรับความสูงแผงควบคุม"
         className="flex h-7 shrink-0 cursor-grab items-center justify-center"
@@ -132,6 +133,9 @@ function Panel({ desktop }: { desktop: boolean }) {
       >
         <span className="h-1.5 w-12 rounded-full bg-white/30" />
       </button>
+      <div className="shrink-0">
+        <GuideCard docked />
+      </div>
       {tabs}
       {sheet !== 'peek' && body}
     </section>
@@ -152,6 +156,7 @@ export default function LabPage() {
         <Panel desktop={desktop} />
       </div>
       <IntroModal />
+      <GuideSync />
     </div>
   )
 }

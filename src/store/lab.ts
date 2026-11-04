@@ -69,6 +69,8 @@ export interface Progress {
   finalAnswers: Array<number | null>
   hintLevel: Record<number, number>
   hintsUsed: number
+  /** a mission was completed while guided mode was on */
+  guidedUsed: boolean
   startedAt: number | null
   finishedAt: number | null
   resultId: string | null
@@ -90,6 +92,7 @@ const freshProgress = (): Progress => ({
   finalAnswers: FINAL_QUIZ.map(() => null),
   hintLevel: {},
   hintsUsed: 0,
+  guidedUsed: false,
   startedAt: null,
   finishedAt: null,
   resultId: null,
@@ -146,6 +149,8 @@ interface LabState {
   checkShown: boolean
   autoResults: ScenarioResult[] | null
 
+  /** guided step-by-step mode (default on for Open House) */
+  guided: boolean
   quality: Quality
   autoQuality: 'low' | 'mid' | 'high'
   soundOn: boolean
@@ -173,6 +178,8 @@ interface LabState {
   removeComponent(id: string): void
   tapNode(node: string): void
   removeWire(id: string): void
+  removeLastWire(): void
+  setGuided(on: boolean): void
   setUsb(on: boolean): void
   clearCircuit(): void
   loadSolution(key: SolutionKey): void
@@ -286,7 +293,7 @@ export const useLab = create<LabState>()(
         if (!m || p.completed.includes(m.id)) return
         const st = objectivesStatus(m, missionCtx(s))
         if (Object.values(st).every(Boolean)) {
-          set({ progress: { ...p, completed: [...p.completed, m.id] } })
+          set({ progress: { ...p, completed: [...p.completed, m.id], guidedUsed: p.guidedUsed || (s.guided && m.id >= 2 && m.id <= 5) } })
           sfx.success()
           s.toast('ok', `ผ่านภารกิจ "${m.title}" แล้ว เก่งมาก! 🎉`)
         }
@@ -317,6 +324,7 @@ export const useLab = create<LabState>()(
         highlight: { comps: [], nodes: [] },
         checkShown: false,
         autoResults: null,
+        guided: true,
         quality: 'auto',
         autoQuality: 'high',
         soundOn: true,
@@ -462,6 +470,15 @@ export const useLab = create<LabState>()(
           applyCircuit({ ...s.circuit, wires: s.circuit.wires.filter((w) => w.id !== id) })
           set({ selection: null })
           sfx.remove()
+        },
+        removeLastWire: () => {
+          const w = get().circuit.wires.at(-1)
+          if (w) get().removeWire(w.id)
+          else get().toast('info', 'ยังไม่มีสายให้ลบ')
+        },
+        setGuided: (guided) => {
+          set({ guided })
+          sfx.click()
         },
 
         setUsb: (on) => {
@@ -710,6 +727,7 @@ export const useLab = create<LabState>()(
             challenge: p.challenge,
             autoScore: p.autoTest?.score ?? null,
             hintsUsed: p.hintsUsed,
+            guided: p.guidedUsed,
           }
           const r = await saveResult(rec)
           s.toast(
@@ -765,6 +783,7 @@ export const useLab = create<LabState>()(
         quality: s.quality,
         soundOn: s.soundOn,
         dataFlow: s.dataFlow,
+        guided: s.guided,
         noise: s.noise,
         route: s.route === 'staff' ? 'landing' : s.route,
       }),
