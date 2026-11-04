@@ -19,6 +19,7 @@ export const CAREERS = [
     en: 'AIoT & Embedded Control Systems Engineer',
     desc: 'ออกแบบอุปกรณ์อัจฉริยะที่รับรู้ คิด และควบคุมตัวเองได้ ตั้งแต่วงจร เซนเซอร์ ไปจนถึง AI บนบอร์ด',
     thisLab: true,
+    lab: 'aiot' as const,
   },
   {
     id: 'av',
@@ -26,6 +27,7 @@ export const CAREERS = [
     th: 'วิศวกรระบบภาพ เสียง และแสงอัจฉริยะ',
     en: 'Intelligent AV & Lighting Systems Engineer',
     desc: 'ออกแบบระบบภาพ เสียง และแสงสำหรับคอนเสิร์ต สตูดิโอ และอาคารอัจฉริยะให้ทำงานร่วมกันอัตโนมัติ',
+    lab: 'av' as const,
   },
   {
     id: 'integrator',
@@ -48,6 +50,12 @@ export const CAREERS = [
     en: 'Digital Platform Engineer',
     desc: 'พัฒนาแพลตฟอร์มคลาวด์ แอป และระบบข้อมูลที่รองรับอุปกรณ์อัจฉริยะจำนวนมาก',
   },
+]
+
+export const AV_STAGES = [
+  { id: 1, th: 'แสงและเสียงบนเวที', en: 'Stage Lighting & Live Sound', desc: 'ต่อระบบ DMX ผสมสีแสง ต่อเส้นทางเสียง ตั้ง Gain ปราบเสียงหอน และสร้างโชว์อัตโนมัติ', open: true },
+  { id: 2, th: 'ภาพและวิดีโอ', en: 'Video, LED Wall & Projection Mapping', desc: 'ออกแบบจอ LED และโปรเจกเตอร์ ความละเอียด ความสว่าง และการส่งสัญญาณวิดีโอ', open: false },
+  { id: 3, th: 'ระบบอัตโนมัติและอาคารอัจฉริยะ', en: 'Show Control & Smart Building AV', desc: 'ควบคุมด้วย Timecode/OSC และฉากอัตโนมัติในห้องประชุมและอาคารอัจฉริยะ', open: false },
 ]
 
 export const STAGES = [

@@ -4,8 +4,13 @@
  */
 import type { SupabaseClient } from '@supabase/supabase-js'
 
+export type LabId = 'aiot' | 'av'
+export const LAB_TH: Record<LabId, string> = { aiot: 'AIoT & สมองกลฝังตัว', av: 'ภาพ เสียง และแสงอัจฉริยะ' }
+
 export interface ResultRecord {
   id: string
+  /** which career lab (older records without it are AIoT) */
+  lab?: LabId
   nickname: string
   school: string
   startedAt: number
@@ -59,6 +64,7 @@ export async function saveResult(r: ResultRecord): Promise<{ local: boolean; rem
   try {
     const { error } = await (await c).from(TABLE).upsert({
       id: r.id,
+      lab: r.lab ?? 'aiot',
       nickname: r.nickname,
       school: r.school,
       started_at: new Date(r.startedAt).toISOString(),
@@ -86,6 +92,7 @@ export async function fetchRemoteResults(): Promise<ResultRecord[] | { error: st
   if (error) return { error: error.message }
   return (data ?? []).map((d: Record<string, unknown>) => ({
     id: String(d.id),
+    lab: (d.lab as LabId) ?? 'aiot',
     nickname: String(d.nickname ?? ''),
     school: String(d.school ?? ''),
     startedAt: Date.parse(String(d.started_at)),

@@ -29,7 +29,7 @@ import { setMuted, sfx } from '../services/sound'
 
 export const sim = new LabSim(Math.floor(Math.random() * 1e6))
 
-export type Route = 'landing' | 'lab' | 'summary' | 'staff'
+export type Route = 'landing' | 'lab' | 'summary' | 'staff' | 'av' | 'avsummary'
 export type Mode = 'select' | 'wire' | 'measure'
 export type Quality = 'auto' | 'low' | 'mid' | 'high'
 export type PanelTab = 'mission' | 'circuit' | 'env' | 'monitor' | 'rules'
@@ -716,6 +716,7 @@ export const useLab = create<LabState>()(
           const end = p.finishedAt ?? Date.now()
           const rec: ResultRecord = {
             id,
+            lab: 'aiot',
             nickname: s.profile.nickname || 'ไม่ระบุชื่อ',
             school: s.profile.school,
             startedAt: p.startedAt ?? end,

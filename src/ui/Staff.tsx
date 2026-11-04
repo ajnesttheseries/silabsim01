@@ -1,11 +1,15 @@
 import { useEffect, useState } from 'react'
 import { downloadText, toCsv } from '../engine/csv'
+import { AV_MISSIONS } from '../av/engine/missions'
 import { MISSIONS } from '../engine/missions'
-import { fetchRemoteResults, loadLocalResults, STAFF_PIN, supabaseEnabled, type ResultRecord } from '../services/results'
+import { fetchRemoteResults, LAB_TH, loadLocalResults, STAFF_PIN, supabaseEnabled, type LabId, type ResultRecord } from '../services/results'
 import { useLab } from '../store/lab'
 import { Btn, fmtDuration } from './common'
 
-function Stats({ rows }: { rows: ResultRecord[] }) {
+const labOf = (r: ResultRecord): LabId => r.lab ?? 'aiot'
+
+function Stats({ rows, lab }: { rows: ResultRecord[]; lab: LabId | 'all' }) {
+  const missions = lab === 'av' ? AV_MISSIONS : MISSIONS
   const n = rows.length
   const quiz = rows.filter((r) => r.quizScore != null)
   const avgQuiz = quiz.length ? quiz.reduce((s, r) => s + r.quizScore!, 0) / quiz.length : null
@@ -26,10 +30,13 @@ function Stats({ rows }: { rows: ResultRecord[] }) {
           </div>
         ))}
       </div>
+      {lab === 'all' ? (
+        <p className="text-xs text-slate-400">เลือกแล็บด้านบนเพื่อดูจำนวนผู้ผ่านแต่ละภารกิจ</p>
+      ) : (
       <div className="glass rounded-2xl p-3">
-        <p className="mb-2 text-sm font-bold text-cyan-100">จำนวนผู้ผ่านแต่ละภารกิจ</p>
+        <p className="mb-2 text-sm font-bold text-cyan-100">จำนวนผู้ผ่านแต่ละภารกิจ ({LAB_TH[lab]})</p>
         <div className="space-y-1">
-          {MISSIONS.map((m) => {
+          {missions.map((m) => {
             const c = rows.filter((r) => r.missionsPassed.includes(m.id)).length
             const pct = n ? (c / n) * 100 : 0
             return (
@@ -48,6 +55,7 @@ function Stats({ rows }: { rows: ResultRecord[] }) {
           })}
         </div>
       </div>
+      )}
     </div>
   )
 }
@@ -60,6 +68,8 @@ export default function Staff() {
   const [rows, setRows] = useState<ResultRecord[]>([])
   const [source, setSource] = useState<'remote' | 'local'>(supabaseEnabled ? 'remote' : 'local')
   const [loading, setLoading] = useState(false)
+  const [lab, setLab] = useState<LabId | 'all'>('all')
+  const shown = lab === 'all' ? rows : rows.filter((r) => labOf(r) === lab)
 
   useEffect(() => {
     if (!ok) return
@@ -82,10 +92,11 @@ export default function Staff() {
 
   const exportCsv = () =>
     downloadText(
-      `aiot-lab-results-${new Date().toISOString().slice(0, 10)}.csv`,
+      `si-lab-results-${lab}-${new Date().toISOString().slice(0, 10)}.csv`,
       toCsv(
-        ['ชื่อเล่น', 'โรงเรียน', 'เริ่ม', 'จบ', 'เวลา (วินาที)', 'คะแนนแบบทดสอบ', 'เต็ม', 'ภารกิจที่ผ่าน', 'โจทย์ท้าทาย', 'คะแนนทดสอบอัตโนมัติ', 'ใช้คำใบ้', 'ใช้โหมดพาทำ'],
-        rows.map((r) => [
+        ['แล็บ', 'ชื่อเล่น', 'โรงเรียน', 'เริ่ม', 'จบ', 'เวลา (วินาที)', 'คะแนนแบบทดสอบ', 'เต็ม', 'ภารกิจที่ผ่าน', 'โจทย์ท้าทาย', 'คะแนนทดสอบอัตโนมัติ', 'ใช้คำใบ้', 'ใช้โหมดพาทำ'],
+        shown.map((r) => [
+          LAB_TH[labOf(r)],
           r.nickname,
           r.school,
           new Date(r.startedAt).toLocaleString('th-TH'),
@@ -160,7 +171,12 @@ export default function Staff() {
                 </Btn>
               </>
             )}
-            <Btn variant="primary" onClick={exportCsv} disabled={!rows.length}>
+            <select value={lab} onChange={(e) => setLab(e.target.value as LabId | 'all')} className="h-11 rounded-xl border border-white/15 bg-ink-900 px-2 text-sm" aria-label="เลือกแล็บ">
+              <option value="all">ทุกแล็บ</option>
+              <option value="aiot">{LAB_TH.aiot}</option>
+              <option value="av">{LAB_TH.av}</option>
+            </select>
+            <Btn variant="primary" onClick={exportCsv} disabled={!shown.length}>
               ⬇ ส่งออก CSV
             </Btn>
             <Btn
@@ -180,12 +196,12 @@ export default function Staff() {
           </p>
         )}
         {err && <p className="rounded-xl bg-rose-950/60 p-3 text-sm text-rose-200">{err}</p>}
-        {loading ? <p>กำลังโหลด…</p> : <Stats rows={rows} />}
+        {loading ? <p>กำลังโหลด…</p> : <Stats rows={shown} lab={lab} />}
         <div className="glass overflow-x-auto scroll-thin rounded-2xl p-3">
-          <table className="w-full min-w-[640px] text-left text-sm">
+          <table className="w-full min-w-[720px] text-left text-sm">
             <thead className="text-cyan-200">
               <tr>
-                {['ชื่อเล่น', 'โรงเรียน', 'วันที่', 'เวลา', 'คะแนน', 'ภารกิจ', 'โจทย์ท้าทาย', 'โหมด'].map((h) => (
+                {['แล็บ', 'ชื่อเล่น', 'โรงเรียน', 'วันที่', 'เวลา', 'คะแนน', 'ภารกิจ', 'โจทย์ท้าทาย', 'โหมด'].map((h) => (
                   <th key={h} className="px-2 py-1">
                     {h}
                   </th>
@@ -193,8 +209,9 @@ export default function Staff() {
               </tr>
             </thead>
             <tbody>
-              {rows.map((r) => (
+              {shown.map((r) => (
                 <tr key={r.id} className="border-t border-white/5">
+                  <td className="px-2 py-1 text-xs">{labOf(r) === 'av' ? '🎛️ AV' : '🤖 AIoT'}</td>
                   <td className="px-2 py-1">{r.nickname}</td>
                   <td className="px-2 py-1">{r.school || '–'}</td>
                   <td className="px-2 py-1 text-xs">{new Date(r.finishedAt).toLocaleString('th-TH')}</td>
@@ -202,14 +219,14 @@ export default function Staff() {
                   <td className="px-2 py-1 font-mono">{r.quizScore == null ? '–' : `${r.quizScore}/${r.quizTotal}`}</td>
                   <td className="px-2 py-1 font-mono">{r.missionsPassed.length}/7</td>
                   <td className="px-2 py-1 text-xs">
-                    {r.challenge === 'plant' ? 'กระถาง' : r.challenge === 'classroom' ? 'ห้องเรียน' : '–'} {r.autoScore != null && `(${r.autoScore}/4)`}
+                    {r.challenge === 'plant' ? 'กระถาง' : r.challenge === 'classroom' ? 'ห้องเรียน' : r.challenge === 'concert-show' ? 'โชว์คอนเสิร์ต' : '–'} {r.autoScore != null && `(${r.autoScore}/4)`}
                   </td>
                   <td className="px-2 py-1 text-xs">{r.guided ? '🧭 พาทำ' : '💪 ทำเอง'}</td>
                 </tr>
               ))}
-              {!rows.length && (
+              {!shown.length && (
                 <tr>
-                  <td colSpan={8} className="px-2 py-4 text-center text-slate-400">
+                  <td colSpan={9} className="px-2 py-4 text-center text-slate-400">
                     ยังไม่มีผลที่บันทึกไว้
                   </td>
                 </tr>

@@ -7,6 +7,8 @@ import { PresenterOverlay } from './ui/Presenter'
 const LabPage = lazy(() => import('./ui/LabPage'))
 const Summary = lazy(() => import('./ui/Summary'))
 const Staff = lazy(() => import('./ui/Staff'))
+const AvLabPage = lazy(() => import('./av/ui/AvLabPage'))
+const AvSummary = lazy(() => import('./av/ui/AvSummary'))
 
 class ErrorBoundary extends Component<{ children: ReactNode }, { error: Error | null }> {
   state = { error: null as Error | null }
@@ -71,6 +73,8 @@ export default function App() {
         {route === 'lab' && <LabPage />}
         {route === 'summary' && <Summary />}
         {route === 'staff' && <Staff />}
+        {route === 'av' && <AvLabPage />}
+        {route === 'avsummary' && <AvSummary />}
       </Suspense>
       <PresenterOverlay />
       <Toasts />

@@ -31,7 +31,7 @@ function MissionMap() {
   )
 }
 
-function Quiz({ qs, answers, onAnswer, oneAtATime }: { qs: QuizQuestion[]; answers: Array<number | null>; onAnswer: (i: number, c: number) => void; oneAtATime?: boolean }) {
+export function Quiz({ qs, answers, onAnswer, oneAtATime }: { qs: QuizQuestion[]; answers: Array<number | null>; onAnswer: (i: number, c: number) => void; oneAtATime?: boolean }) {
   const firstOpen = answers.findIndex((a) => a === null)
   const [idx, setIdx] = useState(Math.max(0, firstOpen))
   const list = oneAtATime ? [idx] : qs.map((_, i) => i)

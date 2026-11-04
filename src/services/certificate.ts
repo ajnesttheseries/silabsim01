@@ -13,6 +13,12 @@ export interface CertData {
   quiz: string
   missions: string
   duration: string
+  /** defaults are the AIoT lab texts */
+  topLine?: string
+  title?: string
+  lines?: [string, string]
+  careerLine?: string
+  accent?: string
 }
 
 const thaiDate = (d: Date) => d.toLocaleDateString('th-TH', { year: 'numeric', month: 'long', day: 'numeric' })
@@ -48,22 +54,25 @@ export async function drawCertificate(d: CertData): Promise<HTMLCanvasElement> {
     g.lineTo(W - 180 - (i % 3) * 40, y - 30)
     g.stroke()
   }
-  g.strokeStyle = '#22d3ee'
+  const accent = d.accent ?? '#22d3ee'
+  g.strokeStyle = accent
   g.lineWidth = 8
   g.strokeRect(50, 50, W - 100, H - 100)
-  g.strokeStyle = 'rgba(34,211,238,0.4)'
+  g.globalAlpha = 0.4
   g.lineWidth = 2
   g.strokeRect(74, 74, W - 148, H - 148)
+  g.globalAlpha = 1
 
   g.textAlign = 'center'
   g.fillStyle = '#7dd3fc'
   g.font = `600 34px ${FONT}`
-  g.fillText('Virtual AIoT Lab · ด่านที่ 1 ฮาร์ดแวร์และเซนเซอร์', W / 2, 190)
-  g.shadowColor = '#22d3ee'
+  g.fillText(d.topLine ?? 'Virtual AIoT Lab · ด่านที่ 1 ฮาร์ดแวร์และเซนเซอร์', W / 2, 190)
+  g.shadowColor = accent
   g.shadowBlur = 30
   g.fillStyle = '#ffffff'
-  g.font = `800 92px ${FONT}`
-  g.fillText('ใบประกาศนักวิศวกร AIoT ฝึกหัด', W / 2, 330)
+  const title = d.title ?? 'ใบประกาศนักวิศวกร AIoT ฝึกหัด'
+  g.font = `800 ${title.length > 34 ? 72 : 92}px ${FONT}`
+  g.fillText(title, W / 2, 330)
   g.shadowBlur = 0
   g.fillStyle = '#bae6fd'
   g.font = `500 36px ${FONT}`
@@ -78,8 +87,9 @@ export async function drawCertificate(d: CertData): Promise<HTMLCanvasElement> {
   }
   g.fillStyle = '#e0f2fe'
   g.font = `500 38px ${FONT}`
-  g.fillText('ได้ลงมือออกแบบวงจร ติดตั้งเซนเซอร์ อ่านค่าจากสภาพแวดล้อม', W / 2, 730)
-  g.fillText('และตั้งเงื่อนไขให้ระบบอัจฉริยะทำงานเอง ในห้องปฏิบัติการเสมือนจริง', W / 2, 785)
+  const [l1, l2] = d.lines ?? ['ได้ลงมือออกแบบวงจร ติดตั้งเซนเซอร์ อ่านค่าจากสภาพแวดล้อม', 'และตั้งเงื่อนไขให้ระบบอัจฉริยะทำงานเอง ในห้องปฏิบัติการเสมือนจริง']
+  g.fillText(l1, W / 2, 730)
+  g.fillText(l2, W / 2, 785)
 
   const stats = [
     ['ภารกิจที่ผ่าน', d.missions],
@@ -100,7 +110,7 @@ export async function drawCertificate(d: CertData): Promise<HTMLCanvasElement> {
 
   g.fillStyle = '#94a3b8'
   g.font = `500 28px ${FONT}`
-  g.fillText(`สาขาวิชาวิศวกรรมระบบอัจฉริยะและนวัตกรรมดิจิทัล · สาย AIoT & Embedded Control Systems Engineer`, W / 2, 1060)
+  g.fillText(`สาขาวิชาวิศวกรรมระบบอัจฉริยะและนวัตกรรมดิจิทัล · ${d.careerLine ?? 'สาย AIoT & Embedded Control Systems Engineer'}`, W / 2, 1060)
   g.fillText(`วันที่ ${thaiDate(d.date)} · เกียรติบัตรกิจกรรมเรียนรู้ (ไม่ใช่เอกสารรับรองทางการศึกษา)`, W / 2, 1105)
   return c
 }
