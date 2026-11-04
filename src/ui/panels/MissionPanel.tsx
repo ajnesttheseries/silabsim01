@@ -6,6 +6,8 @@ import { SCENARIOS, type Challenge } from '../../engine/scenarios'
 import { missionCtx, useLab } from '../../store/lab'
 import { Btn, Modal, Pill, Section } from '../common'
 import { GuidePanelSection } from '../guide'
+import { CurriculumCard } from '../CurriculumCard'
+import { AIOT_LINKS } from '../../content'
 
 function MissionMap() {
   const progress = useLab((s) => s.progress)
@@ -436,6 +438,7 @@ export function MissionPanel() {
           </Btn>
         )}
       </Section>
+      <CurriculumCard career="aiot" link={AIOT_LINKS[m.id]} done={done} />
       <GuidePanelSection />
       {m.id === 1 && <Mission1Extras />}
       {m.id === 2 && <Mission2Extras />}

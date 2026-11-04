@@ -12,6 +12,8 @@ import { FAMILY_HEX } from '../scene/layout'
 import { avSound } from '../sound'
 import { avCtx, useAv } from '../store'
 import { AvGuidePanelSection } from './guide'
+import { CurriculumCard } from '../../ui/CurriculumCard'
+import { AV_LINKS } from '../../content'
 
 const SEV: Record<PatchIssue['severity'], { cls: string; icon: string }> = {
   danger: { cls: 'border-rose-400 bg-rose-950/70', icon: '🔥' },
@@ -87,6 +89,7 @@ export function AvMissionPanel() {
           </Btn>
         )}
       </Section>
+      <CurriculumCard career="av" link={AV_LINKS[m.id]} done={done} />
       <AvGuidePanelSection />
       {m.id === 1 && (
         <>

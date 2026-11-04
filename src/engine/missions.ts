@@ -189,7 +189,7 @@ export const MISSIONS: Mission[] = [
     minutes: 5,
     intro: 'ถึงเวลาเป็นวิศวกรตัวจริง! เลือกโจทย์ 1 ข้อ ต่อวงจรเพิ่ม และตั้งกฎใน Rule Builder ให้ระบบทำงานเองโดยไม่ต้องกดสั่ง จากนั้นกด "ทดสอบอัตโนมัติ"',
     objectives: [
-      { id: 'choose', th: 'เลือกโจทย์: ห้องเรียนอัจฉริยะ หรือ กระถางต้นไม้อัจฉริยะ', check: (c) => c.challenge !== null },
+      { id: 'choose', th: 'เลือกโจทย์ 1 ข้อ: บ้านสัตว์เลี้ยง, ห้องเรียน หรือกระถางต้นไม้อัจฉริยะ', check: (c) => c.challenge !== null },
       {
         id: 'wired',
         th: 'ต่อวงจรที่โจทย์ต้องการครบ (ดูรายการในแผงภารกิจ)',
@@ -201,7 +201,9 @@ export const MISSIONS: Mission[] = [
                 c.report.leds.some((l) => l.status === 'ok' && l.color === 'red' && l.drive?.kind === 'GPIO') &&
                 c.report.leds.some((l) => l.status === 'ok' && l.color === 'green' && l.drive?.kind === 'GPIO') &&
                 c.report.buzzers.some((b) => b.status === 'ok' && b.drive?.kind === 'GPIO')
-              : false,
+              : c.challenge === 'pet'
+                ? dhtOk(c) && softOk(c, 'pir') && ledOk(c) && c.report.fans.some((f) => f.status === 'via-driver')
+                : false,
       },
       {
         id: 'rules',
@@ -211,7 +213,9 @@ export const MISSIONS: Mission[] = [
             ? ruleUses(c, 'temp', ['fan']) && ruleUses(c, 'light', ['ledRed', 'ledGreen', 'ledBlue'])
             : c.challenge === 'plant'
               ? ruleUses(c, 'soil', ['ledRed']) && ruleUses(c, 'soil', ['ledGreen']) && ruleUses(c, 'soil', ['buzzer'])
-              : false,
+              : c.challenge === 'pet'
+                ? ruleUses(c, 'temp', ['fan']) && ruleUses(c, 'motion', ['ledRed', 'ledGreen', 'ledBlue'])
+                : false,
       },
       { id: 'test', th: 'ผ่านการทดสอบอัตโนมัติอย่างน้อย 3 จาก 4 สถานการณ์', check: (c) => !!c.autoTest && c.autoTest.score >= 3 },
     ],
@@ -225,10 +229,10 @@ export const MISSIONS: Mission[] = [
       ],
     },
     hints: [
-      'ห้องเรียน: ต่อเซนเซอร์อุณหภูมิ + LDR + LED + โมดูลขับโหลดกับพัดลม | กระถาง: ต่อเซนเซอร์ความชื้นในดิน + LED แดง + LED เขียว + บัซเซอร์',
-      'ห้องเรียน: กฎ "อุณหภูมิ > 32 → เปิดพัดลม (ไม่เช่นนั้นปิด)" และ "แสง < 2500 → เปิด LED" | กระถาง: "ดิน < 35% → เปิด LED แดง/บัซเซอร์" และ "ดิน > 35% → เปิด LED เขียว"',
+      'บ้านสัตว์เลี้ยง: เซนเซอร์อุณหภูมิ + PIR (ไฟ 5V) + LED + โมดูลขับโหลดกับพัดลม | ห้องเรียน: เซนเซอร์อุณหภูมิ + LDR + LED + พัดลม | กระถาง: เซนเซอร์ดิน + LED แดง/เขียว + บัซเซอร์',
+      'บ้านสัตว์เลี้ยง: "อุณหภูมิ > 32 → เปิดพัดลม" และ "การเคลื่อนไหว ตรวจพบ → เปิด LED" | ห้องเรียน: "อุณหภูมิ > 32 → พัดลม" และ "แสง < 2500 → LED" | กระถาง: "ดิน < 35% → LED แดง/บัซเซอร์" และ "ดิน > 35% → LED เขียว"',
     ],
-    solution: (c) => (c.challenge === 'plant' ? 'plant' : c.challenge === 'classroom' ? 'classroom' : undefined),
+    solution: (c) => (c.challenge === 'plant' ? 'plant' : c.challenge === 'classroom' ? 'classroom' : c.challenge === 'pet' ? 'pet' : undefined),
   },
   {
     id: 6,

@@ -42,13 +42,16 @@ export const BUZZER = {
   wires: [w('mcu:GPIO23', 'bb:g5', 'blue'), w('bb:g7', 'bb:bn7', 'black')],
 }
 
+/** 5V distribution on column 30 (rows F–J): one board pin feeds several 5V modules. */
+export const BUS5V = { comps: [] as PlacedComponent[], wires: [w('mcu:5V', 'bb:f30', 'red')] }
+
 export const FAN = {
   comps: [
     { id: 'drv1', type: 'driver', anchor: null },
     { id: 'fan1', type: 'fan', anchor: null },
   ] as PlacedComponent[],
   wires: [
-    w('mcu:5V', 'cmp:drv1:VCC', 'red'),
+    w('bb:g30', 'cmp:drv1:VCC', 'red'),
     w('bb:tn28', 'cmp:drv1:GND', 'black'),
     w('mcu:GPIO26', 'cmp:drv1:IN', 'yellow'),
     w('cmp:drv1:OUTP', 'cmp:fan1:P', 'red'),
@@ -63,7 +66,7 @@ export const SOIL = {
 
 export const PIR = {
   comps: [{ id: 'pir1', type: 'pir', anchor: null }] as PlacedComponent[],
-  wires: [w('mcu:5V', 'cmp:pir1:VCC', 'red'), w('bb:bn29', 'cmp:pir1:GND', 'black'), w('mcu:GPIO27', 'cmp:pir1:OUT', 'white')],
+  wires: [w('bb:h30', 'cmp:pir1:VCC', 'red'), w('bb:bn29', 'cmp:pir1:GND', 'black'), w('mcu:GPIO27', 'cmp:pir1:OUT', 'white')],
 }
 
 type Part = { comps: PlacedComponent[]; wires: Wire[] }
@@ -79,7 +82,8 @@ export const SOLUTIONS = {
   led: () => compose([LED_RED], RAILS_TOP),
   dht: () => compose([LED_RED, DHT], RAILS_TOP),
   ldr: () => compose([LED_RED, DHT, LDR], [...RAILS_TOP, ...RAILS_BOTTOM]),
-  classroom: () => compose([LED_RED, DHT, LDR, FAN], [...RAILS_TOP, ...RAILS_BOTTOM]),
+  classroom: () => compose([LED_RED, DHT, LDR, BUS5V, FAN], [...RAILS_TOP, ...RAILS_BOTTOM]),
   plant: () => compose([LED_RED, LED_GREEN, BUZZER, SOIL], [...RAILS_TOP, ...RAILS_BOTTOM]),
+  pet: () => compose([LED_GREEN, DHT, BUS5V, FAN, PIR], [...RAILS_TOP, ...RAILS_BOTTOM]),
 }
 export type SolutionKey = keyof typeof SOLUTIONS

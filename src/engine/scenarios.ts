@@ -5,7 +5,7 @@ import { LabSim } from './firmware'
 import type { Rule } from './rules'
 import type { SoilCalibration } from './sensors'
 
-export type Challenge = 'classroom' | 'plant'
+export type Challenge = 'classroom' | 'plant' | 'pet'
 
 export interface Expectation {
   key: 'fan' | 'anyLed' | 'ledRed' | 'ledGreen' | 'buzzer'
@@ -19,10 +19,58 @@ export interface Scenario {
   controls: Partial<EnvControls>
   /** initial physical state so the test does not need minutes of warm-up */
   env: { tempC?: number; lux?: number; soil?: number }
+  /** someone (the pet) keeps moving in front of the PIR during the test */
+  motion?: boolean
   expect: Expectation[]
 }
 
 export const SCENARIOS: Record<Challenge, Scenario[]> = {
+  pet: [
+    {
+      id: 'hot-pet',
+      th: 'บ่ายร้อนจัด + น้องแมวเดินเข้าบ้าน',
+      controls: { heater: 100 },
+      env: { tempC: 42 },
+      motion: true,
+      expect: [
+        { key: 'fan', on: true, th: 'พัดลมเปิดคลายร้อน' },
+        { key: 'anyLed', on: true, th: 'ไฟต้อนรับติด' },
+      ],
+    },
+    {
+      id: 'hot-empty',
+      th: 'บ่ายร้อนจัด + น้องแมวออกไปเล่นข้างนอก',
+      controls: { heater: 100 },
+      env: { tempC: 42 },
+      motion: false,
+      expect: [
+        { key: 'fan', on: true, th: 'พัดลมยังเปิด (บ้านไม่ร้อนสะสม)' },
+        { key: 'anyLed', on: false, th: 'ไฟต้อนรับดับ (ประหยัดไฟ)' },
+      ],
+    },
+    {
+      id: 'cool-pet',
+      th: 'อากาศเย็นสบาย + น้องแมวเดินเข้าบ้าน',
+      controls: { heater: 0 },
+      env: { tempC: 27 },
+      motion: true,
+      expect: [
+        { key: 'fan', on: false, th: 'พัดลมปิด (ไม่หนาวเกิน)' },
+        { key: 'anyLed', on: true, th: 'ไฟต้อนรับติด' },
+      ],
+    },
+    {
+      id: 'cool-empty',
+      th: 'อากาศเย็นสบาย + บ้านว่าง',
+      controls: { heater: 0 },
+      env: { tempC: 27 },
+      motion: false,
+      expect: [
+        { key: 'fan', on: false, th: 'พัดลมปิด' },
+        { key: 'anyLed', on: false, th: 'ไฟดับ' },
+      ],
+    },
+  ],
   classroom: [
     {
       id: 'hot-bright',
@@ -141,6 +189,7 @@ export function runScenarioTests(
     for (let t = 0; t < seconds; t += dt) {
       // hold the soil level steady during a test scenario
       if (sc.env.soil !== undefined) sim.env = { ...sim.env, soil: sc.env.soil }
+      if (sc.motion !== undefined) sim.env = { ...sim.env, motionUntil: sc.motion ? Infinity : -1 }
       sim.step(dt)
     }
     const a = sim.actuators.byKey
