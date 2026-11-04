@@ -1,0 +1,113 @@
+@import 'tailwindcss';
+
+@theme {
+  --font-sans: 'Noto Sans Thai', 'Leelawadee UI', 'Thonburi', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, Consolas, monospace;
+  --color-ink-950: #050b1f;
+  --color-ink-900: #0a1533;
+  --color-ink-800: #0f1f47;
+  --color-ink-700: #16306a;
+  --color-neon: #22d3ee;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+  background: #050b1f;
+  color: #e6f0ff;
+  -webkit-tap-highlight-color: transparent;
+}
+body {
+  font-family: var(--font-sans);
+  overscroll-behavior: none;
+}
+html.presenter {
+  font-size: 125%;
+}
+html.presenter .presenter-xl {
+  font-size: 1.25em;
+}
+
+.glass {
+  background: rgba(10, 21, 51, 0.82);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(34, 211, 238, 0.22);
+}
+.neon-text {
+  text-shadow: 0 0 18px rgba(34, 211, 238, 0.65);
+}
+.scroll-thin::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+.scroll-thin::-webkit-scrollbar-thumb {
+  background: rgba(125, 211, 252, 0.35);
+  border-radius: 6px;
+}
+
+@keyframes chip-in {
+  0% {
+    transform: translate(-120px, -60px) rotate(-30deg) scale(0.6);
+    opacity: 0;
+  }
+  60% {
+    transform: translate(0, 0) rotate(6deg) scale(1.1);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(0, 0) rotate(0) scale(1);
+  }
+}
+@keyframes glow-pulse {
+  0%,
+  100% {
+    filter: drop-shadow(0 0 4px #22d3ee);
+  }
+  50% {
+    filter: drop-shadow(0 0 16px #22d3ee);
+  }
+}
+@keyframes float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
+}
+@keyframes pop {
+  0% {
+    transform: scale(0.9);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+.anim-chip {
+  animation: chip-in 1.6s cubic-bezier(0.2, 0.9, 0.3, 1.2) 0.3s both;
+}
+.anim-glow {
+  animation: glow-pulse 2s ease-in-out infinite;
+}
+.anim-float {
+  animation: float 3s ease-in-out infinite;
+}
+.anim-pop {
+  animation: pop 0.25s ease-out both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}
