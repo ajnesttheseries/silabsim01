@@ -2,7 +2,7 @@ import { useEffect } from 'react'
 import { createRng } from '../engine/rng'
 import { useLab } from '../store/lab'
 import { computeLevels, singerSpl, TARGET } from './engine/audio'
-import { cueAt, cueToConsole, rigOutput, SHOW_LENGTH, showSingerSpl } from './engine/show'
+import { cueAt, cueToConsole, NARRATION_SPL, rigOutput, SHOW_LENGTH, showSingerSpl } from './engine/show'
 import { avSound } from './sound'
 import { useAv } from './store'
 
@@ -46,8 +46,10 @@ export function useAvSim(active: boolean) {
         }
       }
       const show = live.showPlaying
-      const cue = show ? cueAt(s.cues, showT) : null
-      const spl = live.rehearsing ? singerSpl(t).spl : show ? showSingerSpl(showT) : null
+      // interactive exhibit demo: the motion sensor picks the scene
+      const exhibit = !show && !live.rehearsing && s.exhibitDemo && s.progress.challenge === 'exhibit'
+      const cue = show ? cueAt(s.cues, showT) : exhibit ? s.scenes[s.visitor ? 'visitor' : 'idle'] : null
+      const spl = live.rehearsing ? singerSpl(t).spl : show ? showSingerSpl(showT) : exhibit && s.visitor ? NARRATION_SPL : null
       const standCh = s.patch.micChannel[s.mixer.micOnStand]
       const mixer = cue && standCh ? { ...s.mixer, [standCh]: { ...s.mixer[standCh], mute: cue.mic === 'mute' } } : s.mixer
       const levels = computeLevels(mixer, s.patch, spl)

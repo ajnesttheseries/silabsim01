@@ -266,6 +266,19 @@ describe('mission 5 automatic tests', () => {
     const r = runScenarioTests('classroom', s, rules, defaultSoilCal())
     expect(r.results.find((x) => x.scenario.id === 'hot-dark')!.pass).toBe(false)
   })
+  it('smart pet home: reference circuit is clean and passes all four situations', () => {
+    const s = SOLUTIONS.pet()
+    expect(validateCircuit(s).issues.filter((i) => i.severity === 'error' || i.severity === 'danger')).toEqual([])
+    const rules: Rule[] = [
+      { id: 'a', sensor: 'temp', op: '>', value: 32, actuator: 'fan', action: 'on', otherwise: true, enabled: true },
+      { id: 'b', sensor: 'motion', op: '>', value: 1, actuator: 'ledGreen', action: 'on', otherwise: true, enabled: true },
+    ]
+    const r = runScenarioTests('pet', s, rules, defaultSoilCal())
+    expect(r.results.filter((x) => !x.pass).map((x) => x.scenario.id)).toEqual([])
+    expect(r.score).toBe(4)
+    // without the motion rule the welcome light never reacts to the pet
+    expect(runScenarioTests('pet', s, rules.slice(0, 1), defaultSoilCal()).score).toBe(2)
+  })
   it('plant reference solution passes', () => {
     const rules: Rule[] = [
       { id: 'a', sensor: 'soil', op: '<', value: 35, actuator: 'ledRed', action: 'on', otherwise: true, enabled: true },

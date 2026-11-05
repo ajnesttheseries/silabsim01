@@ -6,6 +6,8 @@ import { SCENARIOS, type Challenge } from '../../engine/scenarios'
 import { missionCtx, useLab } from '../../store/lab'
 import { Btn, Modal, Pill, Section } from '../common'
 import { GuidePanelSection } from '../guide'
+import { CurriculumCard } from '../CurriculumCard'
+import { AIOT_LINKS } from '../../content'
 
 function MissionMap() {
   const progress = useLab((s) => s.progress)
@@ -260,6 +262,13 @@ function Mission5Extras() {
   const setTab = useLab((s) => s.setTab)
   const opts: Array<{ id: Challenge; icon: string; th: string; desc: string; parts: string[] }> = [
     {
+      id: 'pet',
+      icon: '🐱',
+      th: 'บ้านสัตว์เลี้ยงอัจฉริยะ',
+      desc: 'ร้อนเกิน → พัดลมเปิดให้น้องแมวคลายร้อน · น้องแมวเดินเข้าบ้าน → ไฟต้อนรับติด',
+      parts: ['เซนเซอร์อุณหภูมิ (ภารกิจ 3)', 'เซนเซอร์ PIR ตรวจจับการเคลื่อนไหว (ไฟ 5V)', 'LED (ไฟต้อนรับ)', 'โมดูลขับโหลด + พัดลม DC 5V'],
+    },
+    {
       id: 'classroom',
       icon: '🏫',
       th: 'ห้องเรียนอัจฉริยะ',
@@ -314,8 +323,9 @@ function Mission5Extras() {
                   <p className="text-slate-300">
                     ค่าที่อ่านได้: {r.readings.temp != null && `อุณหภูมิ ${r.readings.temp.toFixed(1)}°C `}
                     {r.readings.light != null && `แสง ADC ${r.readings.light} `}
-                    {r.readings.soil != null && `ดิน ${r.readings.soil}%`}
-                    {r.readings.temp == null && r.readings.light == null && r.readings.soil == null && 'อ่านเซนเซอร์ไม่ได้'}
+                    {r.readings.soil != null && `ดิน ${r.readings.soil}% `}
+                    {r.readings.motion != null && `PIR ${r.readings.motion ? 'ตรวจพบ' : 'ไม่พบ'}`}
+                    {r.readings.temp == null && r.readings.light == null && r.readings.soil == null && r.readings.motion == null && 'อ่านเซนเซอร์ไม่ได้'}
                   </p>
                   <p>
                     {r.checks.map((c) => (
@@ -436,6 +446,7 @@ export function MissionPanel() {
           </Btn>
         )}
       </Section>
+      <CurriculumCard career="aiot" link={AIOT_LINKS[m.id]} done={done} />
       <GuidePanelSection />
       {m.id === 1 && <Mission1Extras />}
       {m.id === 2 && <Mission2Extras />}

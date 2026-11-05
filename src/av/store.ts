@@ -8,7 +8,7 @@ import { computeLevels, defaultMixer, type Levels, type MixerState } from './eng
 import { defaultAddresses, defaultConsole, type ConsoleValues, type FixtureOutput } from './engine/dmx'
 import { AV_FINAL_QUIZ, AV_MINI_QUIZ, AV_MISSIONS, avObjectives, M4_QUESTION, type AvCtx } from './engine/missions'
 import { analyzePatch, DEVICES, orientCable, PORTS, type Cable, type DeviceId, type PatchReport } from './engine/patch'
-import { rigOutput, runShowTest, SOLUTION_CUES, type Checkpoint, type Cue } from './engine/show'
+import { defaultExhibit, rigOutput, runExhibitTest, runShowTest, SOLUTION_CUES, SOLUTION_EXHIBIT, type Checkpoint, type Cue, type ExhibitScenes, type SceneState } from './engine/show'
 import { AUDIO_CABLES, DMX_CABLES, MONITOR_CABLES, SOLUTION_ADDRESSES } from './engine/solutions'
 import { avSound } from './sound'
 
@@ -27,6 +27,9 @@ export interface AvProgress {
   loudOk: boolean
   m4Answer: number | null
   showScore: { score: number; total: number } | null
+  /** mission 5 challenge: concert cue list or interactive exhibit */
+  challenge: 'concert' | 'exhibit' | null
+  exhibitScore: { score: number; total: number } | null
   finalAnswers: Array<number | null>
   hintLevel: Record<number, number>
   hintsUsed: number
@@ -47,6 +50,8 @@ const freshProgress = (): AvProgress => ({
   loudOk: false,
   m4Answer: null,
   showScore: null,
+  challenge: null,
+  exhibitScore: null,
   finalAnswers: AV_FINAL_QUIZ.map(() => null),
   hintLevel: {},
   hintsUsed: 0,
@@ -79,6 +84,12 @@ interface AvState {
   live: AvLive
   showLive: { checkpoints: Checkpoint[]; score: number; total: number }
   showResults: Checkpoint[] | null
+  scenes: ExhibitScenes
+  /** apply the exhibit scenes live (presence demo) */
+  exhibitDemo: boolean
+  visitor: boolean
+  exhibitLive: { checkpoints: Checkpoint[]; score: number; total: number }
+  exhibitResults: Checkpoint[] | null
   selectedFixture: string
   mode: 'select' | 'cable'
   cableStart: string | null
@@ -108,7 +119,12 @@ interface AvState {
   updateCue(id: string, c: Partial<Cue>): void
   removeCue(id: string): void
   runShowTest(): void
-  loadSolution(what: 'dmx' | 'audio' | 'monitor' | 'cues'): void
+  loadSolution(what: 'dmx' | 'audio' | 'monitor' | 'cues' | 'exhibit'): void
+  chooseChallenge(c: 'concert' | 'exhibit'): void
+  updateScene(which: keyof ExhibitScenes, p: Partial<SceneState>): void
+  setExhibitDemo(on: boolean): void
+  setVisitor(on: boolean): void
+  runExhibitTest(): void
   markFound(id: string): void
   answerMini(i: number, c: number): void
   answerM4(c: number): void
@@ -133,7 +149,7 @@ let uid = Date.now() % 100000
 const newId = (p: string) => `${p}-${(++uid).toString(36)}`
 const toast = (k: 'ok' | 'error' | 'info' | 'warn', t: string) => useLab.getState().toast(k, t)
 
-export function avCtx(s: Pick<AvState, 'cables' | 'patch' | 'addresses' | 'mixer' | 'live' | 'progress' | 'cues' | 'showLive'>): AvCtx {
+export function avCtx(s: Pick<AvState, 'cables' | 'patch' | 'addresses' | 'mixer' | 'live' | 'progress' | 'cues' | 'showLive' | 'exhibitLive' | 'scenes'>): AvCtx {
   const p = s.progress
   return {
     cables: s.cables,
@@ -152,6 +168,10 @@ export function avCtx(s: Pick<AvState, 'cables' | 'patch' | 'addresses' | 'mixer
     cues: s.cues,
     showScore: p.showScore,
     showCheckpoints: s.showLive.checkpoints.map((c) => c.pass),
+    challenge: p.challenge,
+    exhibitScore: p.exhibitScore,
+    exhibitCheckpoints: s.exhibitLive.checkpoints.map((c) => c.pass),
+    scenesEdited: JSON.stringify(s.scenes.idle) !== JSON.stringify(s.scenes.visitor),
     finalDone: p.finalAnswers.every((a) => a !== null),
   }
 }
@@ -174,7 +194,7 @@ export const useAv = create<AvState>()(
         const s = get()
         const patch = patchChanged ? analyzePatch(s.cables) : s.patch
         const show = runShowTest(s.cues, s.addresses, patch, s.mixer)
-        set({ patch, showLive: show })
+        set({ patch, showLive: show, exhibitLive: runExhibitTest(s.scenes, s.addresses, patch, s.mixer) })
         checkMissions()
       }
       const checkMissions = () => {
@@ -202,6 +222,11 @@ export const useAv = create<AvState>()(
         live: initialLive(),
         showLive: { checkpoints: [], score: 0, total: 4 },
         showResults: null,
+        scenes: defaultExhibit(),
+        exhibitDemo: false,
+        visitor: false,
+        exhibitLive: { checkpoints: [], score: 0, total: 2 },
+        exhibitResults: null,
         selectedFixture: 'par1',
         mode: 'select',
         cableStart: null,
@@ -338,6 +363,30 @@ export const useAv = create<AvState>()(
           sfx.remove()
           recompute(false)
         },
+        chooseChallenge: (challenge) => {
+          set({ progress: { ...get().progress, challenge }, showResults: null, exhibitResults: null })
+          if (challenge === 'concert') set({ exhibitDemo: false })
+          sfx.click()
+          checkMissions()
+        },
+        updateScene: (which, p) => {
+          const sc = get().scenes
+          set({ scenes: { ...sc, [which]: { ...sc[which], ...p } } })
+          recompute(false)
+        },
+        setExhibitDemo: (exhibitDemo) => set({ exhibitDemo, live: { ...get().live, showPlaying: false, rehearsing: false } }),
+        setVisitor: (visitor) => {
+          set({ visitor })
+          sfx.click()
+        },
+        runExhibitTest: () => {
+          const s = get()
+          const r = runExhibitTest(s.scenes, s.addresses, s.patch, s.mixer)
+          set({ exhibitResults: r.checkpoints, progress: { ...s.progress, exhibitScore: { score: r.score, total: r.total } } })
+          if (r.score >= r.total) sfx.success()
+          else sfx.error()
+          checkMissions()
+        },
         runShowTest: () => {
           const s = get()
           const r = runShowTest(s.cues, s.addresses, s.patch, s.mixer)
@@ -349,6 +398,7 @@ export const useAv = create<AvState>()(
         loadSolution: (what) => {
           const s = get()
           if (what === 'cues') set({ cues: SOLUTION_CUES() })
+          else if (what === 'exhibit') set({ scenes: SOLUTION_EXHIBIT() })
           else {
             const keep = (fam: 'dmx' | 'audio') => s.cables.filter((c) => (PORTS[c.from].kind.startsWith('dmx') ? 'dmx' : 'audio') !== fam)
             if (what === 'dmx') set({ cables: [...keep('dmx'), ...DMX_CABLES.map((c) => ({ ...c, id: newId('c') }))], addresses: SOLUTION_ADDRESSES() })
@@ -421,7 +471,7 @@ export const useAv = create<AvState>()(
           if (m === 1) Object.assign(patch, { found: [], miniAnswers: [null, null, null] })
           if (m === 3) Object.assign(patch, { powerOrderOk: false, gainOk: false })
           if (m === 4) Object.assign(patch, { loudOk: false, m4Answer: null })
-          if (m === 5) patch.showScore = null
+          if (m === 5) Object.assign(patch, { showScore: null, exhibitScore: null, challenge: null })
           if (m === 6) patch.finalAnswers = AV_FINAL_QUIZ.map(() => null)
           set({ progress: { ...p, ...patch, completed: p.completed.filter((x) => x !== m) }, showResults: null })
           toast('info', 'เริ่มภารกิจนี้ใหม่แล้ว')
@@ -473,8 +523,8 @@ export const useAv = create<AvState>()(
             quizScore: p.finalAnswers.every((a) => a !== null) ? scoreQuiz(AV_FINAL_QUIZ, p.finalAnswers) : null,
             quizTotal: AV_FINAL_QUIZ.length,
             missionsPassed: [...p.completed].sort(),
-            challenge: 'concert-show',
-            autoScore: p.showScore?.score ?? null,
+            challenge: p.challenge === 'exhibit' ? 'exhibit' : 'concert-show',
+            autoScore: (p.challenge === 'exhibit' ? p.exhibitScore?.score : p.showScore?.score) ?? null,
             hintsUsed: p.hintsUsed,
             guided: p.guidedUsed,
           }
@@ -502,7 +552,7 @@ export const useAv = create<AvState>()(
     {
       name: 'av-lab-state-v1',
       version: 1,
-      partialize: (s) => ({ cables: s.cables, addresses: s.addresses, console: s.console, mixer: s.mixer, cues: s.cues, progress: s.progress, guided: s.guided }),
+      partialize: (s) => ({ cables: s.cables, addresses: s.addresses, console: s.console, mixer: s.mixer, cues: s.cues, scenes: s.scenes, progress: s.progress, guided: s.guided }),
       merge: (persisted, current) => {
         const p = (persisted ?? {}) as Partial<AvState>
         return { ...current, ...p, progress: { ...freshProgress(), ...(p.progress ?? {}) } }
@@ -515,7 +565,7 @@ export const useAv = create<AvState>()(
 function syncDerived() {
   const s = useAv.getState()
   const patch = analyzePatch(s.cables)
-  useAv.setState({ patch, showLive: runShowTest(s.cues, s.addresses, patch, s.mixer) })
+  useAv.setState({ patch, showLive: runShowTest(s.cues, s.addresses, patch, s.mixer), exhibitLive: runExhibitTest(s.scenes, s.addresses, patch, s.mixer) })
 }
 syncDerived()
 useAv.persist.onFinishHydration(syncDerived)

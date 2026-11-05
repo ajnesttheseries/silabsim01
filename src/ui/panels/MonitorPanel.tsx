@@ -58,7 +58,7 @@ function Charts() {
       right={
         <div className="flex gap-1">
           {[30, 60, 300].map((w) => (
-            <button key={w} onClick={() => setWin(w)} className={`min-h-9 rounded-lg px-2 text-xs ${win === w ? 'bg-cyan-500 text-slate-950' : 'bg-white/10'}`}>
+            <button key={w} onClick={() => setWin(w)} className={`min-h-9 rounded-lg px-2 text-xs ${win === w ? 'bg-cyan-500 text-on-accent' : 'bg-white/10'}`}>
               {w === 300 ? '5 นาที' : w === 60 ? '1 นาที' : '30 วิ'}
             </button>
           ))}
@@ -78,7 +78,7 @@ function Charts() {
                   <CartesianGrid stroke="rgba(255,255,255,0.08)" />
                   <XAxis dataKey="t" tickFormatter={(t: number) => fmtClock(t)} tick={{ fill: '#94a3b8', fontSize: 10 }} minTickGap={30} />
                   <YAxis domain={s.k === 'motion' ? [0, 1] : ['auto', 'auto']} tick={{ fill: '#94a3b8', fontSize: 10 }} width={46} />
-                  <Tooltip contentStyle={{ background: '#0a1533', border: '1px solid #22d3ee55', fontSize: 12 }} labelFormatter={(t) => fmtClock(Number(t))} />
+                  <Tooltip contentStyle={{ background: 'var(--color-ink-900)', color: 'var(--color-slate-100)', border: '1px solid #22d3ee55', fontSize: 12 }} labelFormatter={(t) => fmtClock(Number(t))} />
                   <Line type={s.k === 'motion' ? 'stepAfter' : 'monotone'} dataKey={s.k} stroke={s.color} dot={false} strokeWidth={2} isAnimationActive={false} connectNulls={false} />
                 </LineChart>
               </ResponsiveContainer>

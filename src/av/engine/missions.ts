@@ -23,6 +23,11 @@ export interface AvCtx {
   showScore: { score: number; total: number } | null
   /** per-checkpoint pass for the live cue list */
   showCheckpoints: boolean[]
+  challenge: 'concert' | 'exhibit' | null
+  exhibitScore: { score: number; total: number } | null
+  exhibitCheckpoints: boolean[]
+  /** the visitor scene differs from the idle scene */
+  scenesEdited: boolean
   finalDone: boolean
 }
 
@@ -185,26 +190,37 @@ export const AV_MISSIONS: AvMission[] = [
   },
   {
     id: 5,
-    title: 'ภารกิจท้าทาย: โชว์เปิดคอนเสิร์ตอัตโนมัติ',
-    short: 'โชว์อัตโนมัติ',
+    title: 'ภารกิจท้าทาย: ระบบที่ทำงานเองอัตโนมัติ',
+    short: 'ระบบอัตโนมัติ',
     minutes: 5,
-    intro: 'สร้าง Cue list ให้แสง เสียง และจอ LED เปลี่ยนเองตรงจังหวะเพลง 32 วินาที แล้วกด "ทดสอบโชว์อัตโนมัติ" ระบบจะตรวจ 4 ช่วงสำคัญของเพลง',
+    intro:
+      'เลือกโจทย์ 1 ข้อ: 🎤 โชว์เปิดคอนเสิร์ต — สร้าง Cue list ให้แสง เสียง และจอ LED เปลี่ยนตรงจังหวะเพลง หรือ 🏛️ นิทรรศการอินเทอร์แอคทีฟ — ตั้ง "ฉาก" ให้ห้องพิพิธภัณฑ์ดนตรีต้อนรับผู้ชมเองเมื่อเซนเซอร์ตรวจพบคนเดินเข้ามา',
     objectives: [
-      { id: 'cues', th: 'สร้าง Cue อย่างน้อย 4 คิว', check: (c) => c.cues.length >= 4 },
-      { id: 'test', th: 'ผ่านการทดสอบโชว์ครบ 4/4 ช่วง', check: (c) => !!c.showScore && c.showScore.score >= 4 },
+      { id: 'choose', th: 'เลือกโจทย์: โชว์คอนเสิร์ต หรือ นิทรรศการอินเทอร์แอคทีฟ', check: (c) => c.challenge !== null },
+      {
+        id: 'build',
+        th: 'โชว์: สร้าง Cue อย่างน้อย 4 คิว · นิทรรศการ: ตั้งฉาก "มีผู้ชม" ให้ต่างจากฉาก "ไม่มีผู้ชม"',
+        check: (c) => (c.challenge === 'concert' ? c.cues.length >= 4 : c.challenge === 'exhibit' ? c.scenesEdited : false),
+      },
+      {
+        id: 'test',
+        th: 'ผ่านการทดสอบอัตโนมัติครบทุกช่วง (โชว์ 4/4 · นิทรรศการ 2/2)',
+        check: (c) =>
+          c.challenge === 'concert' ? !!c.showScore && c.showScore.score >= 4 : c.challenge === 'exhibit' ? !!c.exhibitScore && c.exhibitScore.score >= c.exhibitScore.total : false,
+      },
     ],
     theory: {
       title: 'Show Control: ให้ทุกระบบทำงานพร้อมกัน',
       body: [
         'Cue คือ "ภาพนิ่ง" ของสถานะทั้งเวที ณ เวลาหนึ่ง: สีและความสว่างของไฟ ทิศของ Moving Head ภาพบนจอ และไมค์เปิด/ปิด',
         'ในงานจริง Cue ถูกเรียกด้วย Timecode (SMPTE/LTC) จากเพลง หรือคำสั่ง MIDI/OSC ทำให้ทุกระบบตรงจังหวะทุกรอบการแสดง',
-        'แนวคิดเดียวกันใช้ในอาคารอัจฉริยะ: เมื่อมีคนเข้าห้องประชุม ไฟ ม่าน โปรเจกเตอร์ และเสียงเปลี่ยนเป็น "ฉาก" ที่ตั้งไว้อัตโนมัติ',
+        'แนวคิดเดียวกันใช้ในนิทรรศการ พิพิธภัณฑ์ และอาคารอัจฉริยะ: เมื่อเซนเซอร์ตรวจพบคน แสง เสียง และจอเปลี่ยนเป็น "ฉาก" ที่ตั้งไว้อัตโนมัติ และกลับไปโหมดประหยัดพลังงานเมื่อไม่มีใคร นี่คือด้าน "เซนเซอร์และปัญญาประดิษฐ์ (Sensing & AI)" ของหลักสูตร',
         'ถ้า DMX address ผิดหรือสายขาด โชว์ที่โปรแกรมไว้ถูกก็ยังพังได้ วิศวกรจึงต้องตรวจทั้งระบบ ไม่ใช่แค่โปรแกรม',
       ],
     },
     hints: [
-      'ดูตาราง "เป้าหมายของโชว์" แล้วสร้างคิวที่เวลา 0, 6, 14, 24 และ 28 วินาที',
-      'คิว 0 วิ: PAR น้ำเงิน 40% · Mover ปิด · จอโลโก้ · ไมค์ปิด | 6 วิ: Mover ส่องนักร้อง · ไมค์เปิด · จอเนื้อเพลง | 14 วิ: PAR แดง 100% · จอภาพเต้นตามเพลง | 28 วิ: Blackout ทั้งหมด',
+      'โชว์: สร้างคิวที่เวลา 0, 6, 14 และ 28 วินาทีตามตาราง "เป้าหมาย" | นิทรรศการ: ฉาก "ไม่มีผู้ชม" ให้ห้องสลัวประหยัดไฟ ฉาก "มีผู้ชม" ให้สปอตไลต์ส่องชิ้นงานและเปิดเสียงบรรยาย',
+      'โชว์: 0 วิ PAR น้ำเงิน 40% ไมค์ปิด · 6 วิ Mover ส่องนักร้อง ไมค์เปิด · 14 วิ PAR แดง 100% Visualizer · 28 วิ Blackout | นิทรรศการ: ไม่มีผู้ชม = PAR ส้ม 20% Mover ปิด จอโลโก้ เสียงปิด · มีผู้ชม = PAR ส้ม 70% Mover ส่องชิ้นงาน จอข้อมูลนิทรรศการ เสียงเปิด',
     ],
   },
   {
@@ -317,7 +333,8 @@ export const AV_FINAL_QUIZ: QuizQuestion[] = [
 
 export interface AvGuideStep {
   id: string
-  kind: 'info' | 'select' | 'cable' | 'address' | 'color' | 'power' | 'observe' | 'move' | 'cue' | 'test'
+  kind: 'info' | 'select' | 'cable' | 'address' | 'color' | 'power' | 'observe' | 'move' | 'cue' | 'test' | 'choose' | 'scene' | 'exhibitTest'
+  scene?: 'idle' | 'visitor'
   title: string
   why: string
   cable?: { from: string; to: string }
@@ -347,7 +364,7 @@ const cableStep = (from: string, to: string, title: string, why: string, block: 
 
 const PAR_NAMES: Record<string, string> = { par1: 'PAR1', par2: 'PAR2', par3: 'PAR3', par4: 'PAR4', mover1: 'Mover1', mover2: 'Mover2' }
 
-export function avGuideSteps(mission: number): AvGuideStep[] {
+export function avGuideSteps(mission: number, ctx?: Pick<AvCtx, 'challenge'>): AvGuideStep[] {
   switch (mission) {
     case 0:
       return [
@@ -431,14 +448,25 @@ export function avGuideSteps(mission: number): AvGuideStep[] {
         { id: 'loud', kind: 'observe', observe: 'loud', title: 'กด "▶ ซ้อมร้อง" เพิ่ม Master ให้ FOH ≥ 98 dB และ MON send CH1 ให้มอนิเตอร์ ≥ 102 dB', why: 'ดูค่า "ระยะปลอดภัยก่อนหอน" ต้องติดลบตลอด ถ้าเข้าใกล้ 0 dB ให้ลดลงเล็กน้อย', panel: 'sound', check: (c) => c.loudOk },
         { id: 'answer', kind: 'observe', observe: 'answer', title: 'ตอบคำถามในแผงภารกิจ', why: 'อธิบายได้ว่าทำไมจึงจัดลำโพงแบบนี้', panel: 'mission', check: (c) => c.answerOk },
       ]
-    case 5:
+    case 5: {
+      const choose: AvGuideStep = { id: 'm5-choose', kind: 'choose', title: 'เลือกโจทย์ในแผงภารกิจ: โชว์คอนเสิร์ต หรือ นิทรรศการอินเทอร์แอคทีฟ', why: 'งาน AV มีทั้งเวทีบันเทิงและนิทรรศการ ลองเลือกแบบที่สนใจ', panel: 'mission', check: (c) => c.challenge !== null }
+      if (ctx?.challenge === 'exhibit')
+        return [
+          choose,
+          { id: 'scene-idle', kind: 'scene', scene: 'idle', title: 'ตั้งฉาก "ไม่มีผู้ชม": PAR ส้มหรี่ 20% · Mover ปิด · จอโลโก้ · เสียงบรรยายปิด', why: 'เมื่อไม่มีใคร ห้องยังสว่างพอดูปลอดภัย แต่ประหยัดพลังงานและไม่ส่งเสียงรบกวน', panel: 'show', check: (c) => !!c.exhibitCheckpoints[0] },
+          { id: 'scene-visitor', kind: 'scene', scene: 'visitor', title: 'ตั้งฉาก "มีผู้ชม": สปอตไลต์ส่องชิ้นงาน · PAR ส้ม 70% · จอข้อมูลนิทรรศการ · เสียงบรรยายเปิด', why: 'เซนเซอร์ตรวจพบคน ระบบจึงปรับแสง เสียง และจอพร้อมกัน เพื่อดึงความสนใจไปที่ชิ้นงาน', panel: 'show', check: (c) => !!c.exhibitCheckpoints[1] },
+          { id: 'exhibit-test', kind: 'exhibitTest', title: 'กด "🧪 ทดสอบนิทรรศการอัตโนมัติ"', why: 'ตรวจทั้งค่าฉากและฮาร์ดแวร์จริง: สาย DMX, address และระบบเสียงต้องพร้อม', panel: 'show', check: (c) => !!c.exhibitScore && c.exhibitScore.score >= c.exhibitScore.total },
+        ]
+      if (ctx?.challenge !== 'concert') return [choose]
       return [
+        choose,
         { id: 'cue-0', kind: 'cue', checkpoint: 0, title: 'คิวอินโทร (0 วิ): PAR น้ำเงินหรี่ ๆ · Mover ปิด · จอโลโก้ · ไมค์ปิด', why: 'สร้างบรรยากาศก่อนนักร้องขึ้น ปิดไมค์กันเสียงรบกวน', panel: 'show', check: (c) => !!c.showCheckpoints[0] },
         { id: 'cue-1', kind: 'cue', checkpoint: 1, title: 'คิวท่อนแรก (6 วิ): Mover ส่องนักร้อง · ไมค์เปิด · จอเนื้อเพลง', why: 'สปอตไลต์ดึงสายตาผู้ชมไปที่นักร้อง', panel: 'show', check: (c) => !!c.showCheckpoints[1] },
         { id: 'cue-2', kind: 'cue', checkpoint: 2, title: 'คิวท่อนฮุก (14 วิ): PAR แดง 100% · จอภาพเต้นตามเพลง · ไมค์เปิด', why: 'ท่อนฮุกคือจุดพีคของเพลง แสงต้องสว่างและเร้าใจที่สุด', panel: 'show', check: (c) => !!c.showCheckpoints[2] },
         { id: 'cue-3', kind: 'cue', checkpoint: 3, title: 'คิวจบ (28 วิ): Blackout ไฟดับ จอปิด ไมค์ปิด', why: 'Blackout เป็นสัญญาณให้ผู้ชมรู้ว่าเพลงจบ', panel: 'show', check: (c) => !!c.showCheckpoints[3] },
         { id: 'test', kind: 'test', title: 'กด "🧪 ทดสอบโชว์อัตโนมัติ"', why: 'ตรวจทั้งโปรแกรมคิวและฮาร์ดแวร์จริง (สาย DMX, address, ระบบเสียง)', panel: 'show', check: (c) => !!c.showScore && c.showScore.score >= 4 },
       ]
+    }
     case 6:
       return [{ id: 'quiz', kind: 'observe', observe: 'quiz', title: 'ทำแบบทดสอบ 5 ข้อในแผงภารกิจ', why: 'ทุกข้อมีคำอธิบายหลังตอบ', panel: 'mission', check: (c) => c.finalDone }]
     default:
@@ -447,7 +475,7 @@ export function avGuideSteps(mission: number): AvGuideStep[] {
 }
 
 export function avGuide(mission: number, c: AvCtx) {
-  const steps = avGuideSteps(mission).map((step) => ({ step, done: step.check(c) }))
+  const steps = avGuideSteps(mission, c).map((step) => ({ step, done: step.check(c) }))
   const index = steps.findIndex((s) => !s.done)
   const current = index >= 0 ? steps[index].step : null
   let note: string | null = null

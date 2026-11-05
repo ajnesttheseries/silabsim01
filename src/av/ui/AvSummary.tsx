@@ -28,7 +28,7 @@ export default function AvSummary() {
     quiz: quizDone ? `${score}/${AV_FINAL_QUIZ.length}` : '–',
     missions: `${p.completed.length}/${AV_MISSIONS.length}`,
     duration: `${fmtDuration(duration)} นาที`,
-    topLine: 'Virtual AV & Lighting Lab · ด่านที่ 1 แสงและเสียงบนเวที',
+    topLine: 'Virtual AV & Lighting Lab · ด่านที่ 1 ระบบภาพ เสียง และแสง',
     title: 'ใบประกาศนักวิศวกรระบบภาพ เสียง และแสงฝึกหัด',
     lines: ['ได้ลงมือต่อระบบ DMX ผสมสีแสง ต่อเส้นทางเสียง ตั้ง Gain ปราบเสียงหอน', 'และสร้างโชว์คอนเสิร์ตอัตโนมัติด้วย Cue list ในเวทีเสมือนจริง'],
     careerLine: 'สาย Intelligent AV & Lighting Systems Engineer',
@@ -87,7 +87,11 @@ export default function AvSummary() {
               </li>
             ))}
           </ul>
-          {p.showScore && <p className="mt-2 text-sm text-slate-300">โชว์อัตโนมัติผ่าน {p.showScore.score}/{p.showScore.total} ช่วง · ใช้คำใบ้ {p.hintsUsed} ครั้ง</p>}
+          {p.challenge === 'exhibit' && p.exhibitScore ? (
+            <p className="mt-2 text-sm text-slate-300">นิทรรศการอินเทอร์แอคทีฟผ่าน {p.exhibitScore.score}/{p.exhibitScore.total} ฉาก · ใช้คำใบ้ {p.hintsUsed} ครั้ง</p>
+          ) : (
+            p.showScore && <p className="mt-2 text-sm text-slate-300">โชว์อัตโนมัติผ่าน {p.showScore.score}/{p.showScore.total} ช่วง · ใช้คำใบ้ {p.hintsUsed} ครั้ง</p>
+          )}
         </section>
         <section className="mb-6 rounded-2xl border border-fuchsia-400/40 bg-ink-900/60 p-4">
           <h2 className="mb-3 font-bold text-fuchsia-100">🎓 ใบประกาศนักวิศวกรระบบภาพ เสียง และแสงฝึกหัด</h2>

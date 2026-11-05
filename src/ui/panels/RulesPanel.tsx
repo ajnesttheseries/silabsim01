@@ -190,6 +190,12 @@ export function RulesPanel() {
               <Btn onClick={() => addRule({ sensor: 'light', op: '<', value: 2500, actuator: 'ledRed', action: 'on' })}>แม่แบบ: มืด → ไฟ</Btn>
             </>
           )}
+          {challenge === 'pet' && (
+            <>
+              <Btn onClick={() => addRule({ sensor: 'temp', op: '>', value: 32, actuator: 'fan', action: 'on' })}>แม่แบบ: ร้อน → พัดลม</Btn>
+              <Btn onClick={() => addRule({ sensor: 'motion', op: '>', value: 1, actuator: 'ledGreen', action: 'on' })}>แม่แบบ: น้องแมวมา → ไฟต้อนรับ</Btn>
+            </>
+          )}
           {challenge === 'plant' && (
             <>
               <Btn onClick={() => addRule({ sensor: 'soil', op: '<', value: 35, actuator: 'ledRed', action: 'on' })}>แม่แบบ: ดินแห้ง → LED แดง</Btn>

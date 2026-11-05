@@ -7,7 +7,7 @@
 import { stripOf } from './circuit/breadboard'
 import { componentName, footprint, type ComponentType, type PlacedComponent, type ShelfItem } from './circuit/catalog'
 import type { CircuitState, Netlist, WireColor } from './circuit/netlist'
-import { BUZZER, DHT, FAN, LDR, LED_GREEN, LED_RED, RAILS_BOTTOM, RAILS_TOP, SOIL } from './circuit/solutions'
+import { BUS5V, BUZZER, DHT, FAN, LDR, LED_GREEN, LED_RED, PIR, RAILS_BOTTOM, RAILS_TOP, SOIL } from './circuit/solutions'
 import type { MissionCtx } from './missions'
 import type { ActuatorKey, Op, SensorKey } from './rules'
 
@@ -117,7 +117,7 @@ const hole = (h: string) => {
 
 /* ---------------- building blocks ---------------- */
 
-type Block = 'ledRed' | 'ledGreen' | 'dht' | 'ldr' | 'buzzer' | 'fan' | 'soil'
+type Block = 'ledRed' | 'ledGreen' | 'dht' | 'ldr' | 'buzzer' | 'fan' | 'soil' | 'pir'
 
 const BLOCK_DONE: Record<Block, (c: GuideCtx) => boolean> = {
   ledRed: (c) => c.report.leds.some((l) => l.status === 'ok' && l.color === 'red' && l.drive?.kind === 'GPIO'),
@@ -127,6 +127,7 @@ const BLOCK_DONE: Record<Block, (c: GuideCtx) => boolean> = {
   buzzer: (c) => c.report.buzzers.some((b) => b.status === 'ok' && b.drive?.kind === 'GPIO'),
   fan: (c) => c.report.fans.some((f) => f.status === 'via-driver'),
   soil: (c) => c.circuit.components.some((x) => x.type === 'soil' && c.report.modules[x.id]?.ok),
+  pir: (c) => c.circuit.components.some((x) => x.type === 'pir' && c.report.modules[x.id]?.ok),
 }
 
 function wireStep(block: Block, id: string, wire: { a: string; b: string; color: WireColor }, title: string, why: string, camera: GuideCamera = 'breadboard'): GuideStep {
@@ -244,13 +245,29 @@ function buzzerBlock(): GuideStep[] {
   ]
 }
 
+const bus5v = (b: Block) =>
+  wireStep(b, 'bus5v', BUS5V.wires[0], 'ต่อสายแดงจากขา 5V ของบอร์ด ไปที่แถว F คอลัมน์ 30', 'คอลัมน์ 30 (แถว F–J) กลายเป็นจุดแจกไฟ 5V ให้โมดูลหลายตัว เพราะขาบอร์ดหนึ่งขาเสียบสายได้เส้นเดียว')
+
+function pirBlock(): GuideStep[] {
+  const [wV, wG, wO] = PIR.wires
+  return [
+    railGndBottom('pir'),
+    bus5v('pir'),
+    installStep('pir', 'pir', 'ติดตั้งเซนเซอร์ตรวจจับการเคลื่อนไหว (PIR) หน้าบ้านสัตว์เลี้ยง', 'PIR ตรวจจับความร้อนจากร่างกายที่เคลื่อนที่ ใช้ได้ทั้งคนและสัตว์'),
+    wireStep('pir', 'vcc', wV, 'ต่อสายแดงจากแถว H คอลัมน์ 30 (5V) ไปขา VCC ของ PIR', 'โมดูล PIR ทั่วไปต้องการไฟ 5V', 'overview'),
+    wireStep('pir', 'gnd', wG, 'ต่อสายดำจากราง − (ล่าง) ไปขา GND ของ PIR', 'กราวด์ร่วมกับบอร์ด', 'overview'),
+    wireStep('pir', 'out', wO, 'ต่อสายขาวจากขา G27 ไปขา OUT ของ PIR', 'OUT ส่งสัญญาณดิจิทัล HIGH (3.3V) เมื่อมีน้องแมวเดินผ่าน ปลอดภัยกับขาบอร์ด', 'overview'),
+  ]
+}
+
 function fanBlock(): GuideStep[] {
   const [wV, wG, wIn, wP, wN] = FAN.wires
   return [
     railGndTop('fan'),
+    bus5v('fan'),
     installStep('fan', 'driver', 'ติดตั้งโมดูลขับโหลด (แตะกล่อง "โมดูลขับโหลด" บนชั้นวาง แล้วกด ติดตั้ง)', 'ขา GPIO จ่ายกระแสได้แค่ไม่กี่สิบมิลลิแอมป์ ส่วนมอเตอร์ต้องการหลายร้อย จึงต้องมี "สวิตช์" ที่ GPIO สั่งได้'),
     installStep('fan', 'fan', 'ติดตั้งพัดลม DC 5V', 'พัดลมตัวนี้จะถูกบอร์ดสั่งเปิด-ปิดผ่านโมดูลขับโหลด'),
-    wireStep('fan', 'vcc', wV, 'ต่อสายแดงจากขา 5V ของบอร์ดไปขา VCC ของโมดูลขับโหลด', 'ไฟ 5V สำหรับมอเตอร์มาจากสาย USB โดยตรง ไม่ได้ดึงจากขา GPIO', 'overview'),
+    wireStep('fan', 'vcc', wV, 'ต่อสายแดงจากแถว G คอลัมน์ 30 (5V) ไปขา VCC ของโมดูลขับโหลด', 'ไฟ 5V สำหรับมอเตอร์มาจากสาย USB โดยตรง ไม่ได้ดึงจากขา GPIO', 'overview'),
     wireStep('fan', 'gnd', wG, 'ต่อสายดำจากราง − ไปขา GND ของโมดูล', 'โมดูลกับบอร์ดต้องใช้กราวด์ร่วมกัน สัญญาณจึงจะอ้างอิงตรงกัน', 'overview'),
     wireStep('fan', 'in', wIn, 'ต่อสายเหลืองจากขา G26 ไปขา IN ของโมดูล', 'สัญญาณสั่งเปิด/ปิดพัดลม ใช้กระแสน้อยมาก', 'overview'),
     wireStep('fan', 'p', wP, 'ต่อสายแดงจาก OUT+ ของโมดูลไปขา + ของพัดลม', 'ด้านโหลดของโมดูล', 'overview'),
@@ -370,7 +387,7 @@ export function guideSteps(mission: number, c: Pick<GuideCtx, 'challenge' | 'rep
         { id: 'm4-answer', kind: 'observe', observe: 'ldrAnswer', title: 'ตอบคำถาม "แสงมากขึ้น ค่า ADC เพิ่มหรือลด" ในแผงภารกิจ', why: 'อธิบายผลด้วยสูตรวงจรแบ่งแรงดัน', panel: 'mission', check: (x) => x.ldrAnswerCorrect },
       ]
     case 5: {
-      const choose: GuideStep = { id: 'm5-choose', kind: 'choose', title: 'เลือกโจทย์ในแผงภารกิจ: ห้องเรียนอัจฉริยะ หรือ กระถางต้นไม้อัจฉริยะ', why: 'วิศวกรเริ่มจากเข้าใจโจทย์ก่อนออกแบบวงจร', panel: 'mission', check: (x) => x.challenge !== null }
+      const choose: GuideStep = { id: 'm5-choose', kind: 'choose', title: 'เลือกโจทย์ในแผงภารกิจ: บ้านสัตว์เลี้ยง ห้องเรียน หรือกระถางต้นไม้อัจฉริยะ', why: 'วิศวกรเริ่มจากเข้าใจโจทย์ก่อนออกแบบวงจร', panel: 'mission', check: (x) => x.challenge !== null }
       const test: GuideStep = { id: 'm5-test', kind: 'test', title: 'กด "🧪 ทดสอบอัตโนมัติ"', why: 'ระบบจำลองหลายสถานการณ์เพื่อพิสูจน์ว่าระบบทำงานเองได้ถูกต้อง', panel: 'mission', check: (x) => !!x.autoTest && x.autoTest.score >= 3 }
       if (c.challenge === 'classroom') {
         const ldrTop = c.report.ldrs.find((d) => d.status === 'ok')?.ldrOnTop ?? true
@@ -394,6 +411,18 @@ export function guideSteps(mission: number, c: Pick<GuideCtx, 'challenge' | 'rep
           test,
         ]
       }
+      if (c.challenge === 'pet')
+        return [
+          choose,
+          usbStep,
+          ...ledBlock('ledGreen'),
+          ...dhtBlock(),
+          ...fanBlock(),
+          ...pirBlock(),
+          ruleStep('pet-temp', 'temp', '>', 32, 'fan', 'ตั้งกฎ: ถ้า อุณหภูมิ > 32 °C แล้ว เปิดพัดลม (ไม่เช่นนั้นปิด)', 'สัตว์เลี้ยงขนหนาร้อนง่าย เปิดพัดลมเมื่อจำเป็น และปิดเองเมื่อเย็นแล้วเพื่อประหยัดไฟ'),
+          ruleStep('pet-motion', 'motion', '>', 1, 'ledGreen', 'ตั้งกฎ: ถ้า การเคลื่อนไหว "ตรวจพบ" แล้ว เปิด LED เขียว (ไฟต้อนรับ)', 'เมื่อ PIR เห็นน้องแมวเดินเข้ามา ไฟต้อนรับจะติดเอง และดับเมื่อไม่มีใคร'),
+          test,
+        ]
       if (c.challenge === 'plant')
         return [
           choose,

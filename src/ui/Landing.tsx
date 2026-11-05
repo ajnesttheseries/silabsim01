@@ -4,7 +4,7 @@ import { AV_MISSIONS } from '../av/engine/missions'
 import { AV_STAGES, CAREERS, PROGRAM, STAGES } from '../content'
 import { MISSIONS } from '../engine/missions'
 import { useLab } from '../store/lab'
-import { Btn, ByteBot, Pill } from './common'
+import { Btn, ByteBot, Pill, ThemeToggle } from './common'
 
 function hasWebGL() {
   try {
@@ -99,7 +99,8 @@ export function Landing() {
               </p>
             </div>
           </div>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
+            <ThemeToggle />
             <Btn variant="ghost" onClick={() => setPresenter(!presenter)} aria-pressed={presenter}>
               📽️ {presenter ? 'ปิดโหมดนำเสนอ' : 'โหมดนำเสนอ'}
             </Btn>
@@ -153,8 +154,8 @@ export function Landing() {
             accent="fuchsia"
             career="วิศวกรระบบภาพ เสียง และแสงอัจฉริยะ"
             careerEn="Intelligent AV & Lighting Systems Engineer"
-            title="Virtual AV & Lighting Lab: แสงและเสียงบนเวที"
-            desc="ต่อระบบไฟ DMX ผสมสีแสง ต่อระบบเสียงคอนเสิร์ต ปราบเสียงหอน แล้วสร้างโชว์ที่แสง เสียง และจอ LED ทำงานพร้อมกันอัตโนมัติ"
+            title="Virtual AV & Lighting Lab: ระบบภาพ เสียง และแสง"
+            desc="ต่อระบบไฟ DMX ผสมสีแสง ต่อระบบเสียงเวที ปราบเสียงหอน แล้วสร้างโชว์คอนเสิร์ต หรือนิทรรศการอินเทอร์แอคทีฟที่แสง เสียง และจอ LED ทำงานพร้อมกันอัตโนมัติ"
             stages={AV_STAGES}
             done={avProgress.completed.length}
             total={AV_MISSIONS.length}
@@ -174,6 +175,14 @@ export function Landing() {
                 <p className="font-semibold text-white">{c.th}</p>
                 <p className="mb-1 text-xs text-cyan-300">{c.en}</p>
                 <p className="text-sm text-slate-300">{c.desc}</p>
+                <ul className="mt-2 space-y-1 text-xs">
+                  {c.areas.map((a) => (
+                    <li key={a.en} className="rounded-lg bg-white/5 px-2 py-1">
+                      <b className="text-slate-100">{a.th}</b> <span className="text-cyan-300">({a.en})</span>
+                      <span className="block text-slate-400">{a.desc}</span>
+                    </li>
+                  ))}
+                </ul>
                 {c.lab ? (
                   <Btn
                     variant="soft"
@@ -199,11 +208,7 @@ export function Landing() {
 
         <section className="rounded-2xl border border-white/10 bg-ink-900/60 p-4">
           <h2 className="mb-2 text-lg font-bold text-cyan-100">หลักสูตรนี้เหมาะกับใคร</h2>
-          <ul className="grid gap-1 text-sm text-slate-300 sm:grid-cols-2">
-            {PROGRAM.fit.map((f) => (
-              <li key={f}>✔️ {f}</li>
-            ))}
-          </ul>
+          <p className="text-sm text-slate-300">{PROGRAM.intro}</p>
         </section>
         <p className="mt-6 text-center text-xs text-slate-500">แล็บใช้แบบจำลองอย่างง่ายเพื่อการเรียนรู้ ค่าที่แสดงเป็นค่าประมาณ ไม่ใช่โปรแกรมจำลองทางวิศวกรรมเต็มรูปแบบ</p>
       </div>
