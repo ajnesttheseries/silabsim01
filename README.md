@@ -39,11 +39,11 @@ npm run preview    # ทดลองเปิดไฟล์ที่ build แ�
 
 แอปนี้เป็นเว็บ static ทั้งหมด ไม่ต้องมี server ทุกอย่างทำงานในเบราว์เซอร์ของผู้เล่น
 
-**GitHub Pages (ตั้งไว้แล้วใน repo นี้):** workflow `.github/workflows/deploy-pages.yml` จะรัน test, build และ deploy ให้อัตโนมัติทุกครั้งที่ push หรือ merge เข้า `main`
-1. ตั้งค่าครั้งเดียว: เปิด repo บน GitHub → **Settings → Pages → Build and deployment → Source: GitHub Actions**
-2. merge งานเข้า `main` (หรือเปิดแท็บ **Actions → Deploy to GitHub Pages → Run workflow** เพื่อ deploy จาก `main` ทันที)
-3. ประมาณ 1–2 นาทีต่อมา เว็บจะอยู่ที่ **https://ajnesttheseries.github.io/silabsim01/**
-4. ถ้าต้องการเปลี่ยน PIN หรือใช้ Supabase: ตั้งค่าที่ **Settings → Secrets and variables → Actions → Variables** (`VITE_STAFF_PIN`, `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`) แล้วรัน workflow ใหม่
+**GitHub Pages (เปิดใช้แล้ว):** เว็บอยู่ที่ **https://ajnesttheseries.github.io/silabsim01/**
+- workflow `.github/workflows/deploy-pages.yml` จะรัน test และ build แล้ว push ไฟล์เว็บขึ้น branch `gh-pages` ให้อัตโนมัติทุกครั้งที่ push หรือ merge เข้า `main` (ประมาณ 1–2 นาที) ไม่ต้องตั้งค่าเพิ่ม
+- สั่ง deploy เองได้ที่แท็บ **Actions → Deploy to GitHub Pages → Run workflow**
+- Pages ตั้งเป็น **Settings → Pages → Source: Deploy from a branch → `gh-pages` / root** ห้ามลบ branch `gh-pages` และไม่ต้องแก้ไฟล์ใน branch นั้นเอง เพราะ workflow เขียนทับทุกครั้ง
+- ถ้าต้องการเปลี่ยน PIN หรือใช้ Supabase: ตั้งค่าที่ **Settings → Secrets and variables → Actions → Variables** (`VITE_STAFF_PIN`, `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`) แล้วรัน workflow ใหม่
 
 `vite.config.ts` ใช้ `base: './'` (path แบบสัมพัทธ์) จึงใช้ไฟล์ build ชุดเดียวกันได้ทั้งบน GitHub Pages (`/silabsim01/`) และบนโดเมนหลักของ Vercel/Netlify
 
