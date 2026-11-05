@@ -4,11 +4,24 @@ import { useLab } from '../store/lab'
 type Variant = 'primary' | 'ghost' | 'danger' | 'success' | 'soft'
 
 const VARIANT: Record<Variant, string> = {
-  primary: 'bg-cyan-500 text-slate-950 hover:bg-cyan-400 shadow-[0_0_18px_rgba(34,211,238,0.35)]',
+  primary: 'bg-cyan-500 text-on-accent hover:bg-cyan-400 shadow-[0_0_18px_rgba(34,211,238,0.35)]',
   ghost: 'bg-transparent text-cyan-100 border border-cyan-400/40 hover:bg-cyan-400/10',
-  danger: 'bg-rose-500 text-white hover:bg-rose-400',
-  success: 'bg-emerald-500 text-slate-950 hover:bg-emerald-400',
+  danger: 'bg-rose-500 text-on-danger hover:bg-rose-400',
+  success: 'bg-emerald-500 text-on-accent hover:bg-emerald-400',
   soft: 'bg-ink-700/70 text-cyan-50 hover:bg-ink-700 border border-white/10',
+}
+
+/** Light/dark switch for the 2D interface (the 3D scenes always stay dark). */
+export function ThemeToggle({ withLabel = false }: { withLabel?: boolean }) {
+  const theme = useLab((s) => s.theme)
+  const setTheme = useLab((s) => s.setTheme)
+  const light = theme === 'light'
+  return (
+    <Btn variant="ghost" onClick={() => setTheme(light ? 'dark' : 'light')} aria-label={light ? 'เปลี่ยนเป็นธีมมืด' : 'เปลี่ยนเป็นธีมสว่าง'} aria-pressed={light}>
+      {light ? '☀️' : '🌙'}
+      {withLabel && <span>{light ? 'ธีมสว่าง' : 'ธีมมืด'}</span>}
+    </Btn>
+  )
 }
 
 export function Btn({ variant = 'soft', className = '', children, ...rest }: ButtonHTMLAttributes<HTMLButtonElement> & { variant?: Variant }) {

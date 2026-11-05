@@ -56,7 +56,7 @@ function CameraChips() {
         <button
           key={k}
           onClick={() => setCamera(k)}
-          className={`min-h-11 shrink-0 rounded-xl px-3 text-xs font-semibold backdrop-blur ${preset === k ? 'bg-cyan-500 text-slate-950' : 'bg-ink-900/80 text-cyan-100 border border-white/10'}`}
+          className={`min-h-11 shrink-0 rounded-xl px-3 text-xs font-semibold backdrop-blur ${preset === k ? 'bg-cyan-500 text-on-accent' : 'bg-ink-900/80 text-cyan-100 border border-white/10'}`}
         >
           🎥 {CAMERAS[k].th}
         </button>

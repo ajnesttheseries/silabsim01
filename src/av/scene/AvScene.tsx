@@ -271,6 +271,22 @@ function LedWall() {
           g.fillStyle = `hsl(${(i * 11 + time * 60) % 360} 90% 60%)`
           g.fillRect(i * 32 + 4, c.height - h, 24, h)
         }
+      } else if (mode === 'info') {
+        g.fillStyle = '#1c1917'
+        g.fillRect(0, 0, c.width, c.height)
+        g.fillStyle = '#fbbf24'
+        g.fillRect(40, 40, 8, c.height - 80)
+        g.textAlign = 'left'
+        g.fillStyle = '#fef3c7'
+        g.font = `800 58px ${FONT}`
+        g.fillText('พิพิธภัณฑ์ดนตรี', 80, 120)
+        g.font = `600 34px ${FONT}`
+        g.fillStyle = '#fde68a'
+        g.fillText('นักร้องในตำนาน: เสียงที่ส่งต่อพลังให้ผู้คน', 80, 190)
+        g.font = `500 28px ${FONT}`
+        g.fillStyle = '#e7e5e4'
+        g.fillText('ฟังเสียงบรรยาย และสังเกตแสงที่ส่องชิ้นงาน', 80, 260)
+        g.fillText('ระบบเปิดเองเมื่อเซนเซอร์ตรวจพบผู้ชม 👋', 80, 310)
       } else if (mode === 'lyrics') {
         g.fillStyle = '#0f172a'
         g.fillRect(0, 0, c.width, c.height)
@@ -290,7 +306,8 @@ function LedWall() {
     if (acc.current < 0.1) return
     acc.current = 0
     const s = useAv.getState()
-    const mode: WallMode = s.live.showPlaying ? cueAt(s.cues, s.live.showT).wall : 'logo'
+    const exhibit = s.exhibitDemo && s.progress.challenge === 'exhibit' && !s.live.showPlaying
+    const mode: WallMode = s.live.showPlaying ? cueAt(s.cues, s.live.showT).wall : exhibit ? s.scenes[s.visitor ? 'visitor' : 'idle'].wall : 'logo'
     draw(mode, s.live.showPlaying ? s.live.showT : performance.now() / 1000)
   })
   return (

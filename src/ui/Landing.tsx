@@ -4,7 +4,7 @@ import { AV_MISSIONS } from '../av/engine/missions'
 import { AV_STAGES, CAREERS, PROGRAM, STAGES } from '../content'
 import { MISSIONS } from '../engine/missions'
 import { useLab } from '../store/lab'
-import { Btn, ByteBot, Pill } from './common'
+import { Btn, ByteBot, Pill, ThemeToggle } from './common'
 
 function hasWebGL() {
   try {
@@ -99,7 +99,8 @@ export function Landing() {
               </p>
             </div>
           </div>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
+            <ThemeToggle />
             <Btn variant="ghost" onClick={() => setPresenter(!presenter)} aria-pressed={presenter}>
               📽️ {presenter ? 'ปิดโหมดนำเสนอ' : 'โหมดนำเสนอ'}
             </Btn>

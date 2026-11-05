@@ -27,7 +27,7 @@ class ErrorBoundary extends Component<{ children: ReactNode }, { error: Error | 
           <h1 className="mb-2 text-xl font-bold text-cyan-100">ขออภัย เกิดข้อผิดพลาดในแล็บ</h1>
           <p className="mb-4 text-sm text-slate-300">ข้อมูลความคืบหน้าถูกบันทึกไว้แล้ว ลองโหลดหน้าใหม่อีกครั้ง ถ้ายังไม่หาย ให้ลองเปลี่ยนเบราว์เซอร์เป็น Chrome, Edge หรือ Safari รุ่นล่าสุด</p>
           <pre className="mb-4 max-h-24 overflow-auto rounded-lg bg-black/40 p-2 text-left text-xs text-rose-300">{String(this.state.error.message)}</pre>
-          <button className="min-h-11 rounded-xl bg-cyan-500 px-4 font-bold text-slate-950" onClick={() => location.reload()}>
+          <button className="min-h-11 rounded-xl bg-cyan-500 px-4 font-bold text-on-accent" onClick={() => location.reload()}>
             โหลดหน้าใหม่
           </button>
         </div>
@@ -52,9 +52,15 @@ export default function App() {
   const presenter = useLab((s) => s.presenter)
   const setRoute = useLab((s) => s.setRoute)
 
+  const theme = useLab((s) => s.theme)
+
   useEffect(() => {
     document.documentElement.classList.toggle('presenter', presenter)
   }, [presenter])
+
+  useEffect(() => {
+    document.documentElement.classList.toggle('light', theme === 'light')
+  }, [theme])
 
   // #staff opens the staff page directly (e.g. bookmarked by the event team)
   useEffect(() => {

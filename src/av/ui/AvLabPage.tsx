@@ -1,6 +1,6 @@
 import { lazy, Suspense, useEffect, useRef, useState } from 'react'
 import { useLab } from '../../store/lab'
-import { Btn, ByteBot, fmtDuration, Modal, Pill } from '../../ui/common'
+import { Btn, ByteBot, fmtDuration, Modal, Pill, ThemeToggle } from '../../ui/common'
 import { AV_STAGES } from '../../content'
 import { AV_MISSIONS } from '../engine/missions'
 import { DEVICES, PORTS } from '../engine/patch'
@@ -79,6 +79,10 @@ function TopBar() {
       </Btn>
       <Modal open={menu} onClose={() => setMenu(false)} title="ตั้งค่าและเมนู">
         <div className="space-y-4 text-sm">
+          <div>
+            <p className="mb-2 font-semibold">ธีมหน้าจอ (ฉากเวทีมืดเสมอ)</p>
+            <ThemeToggle withLabel />
+          </div>
           <div>
             <p className="mb-2 font-semibold">คุณภาพกราฟิก</p>
             <div className="flex flex-wrap gap-2">
@@ -229,7 +233,7 @@ function Overlay() {
             <button
               key={k}
               onClick={() => setCamera(k)}
-              className={`min-h-11 shrink-0 rounded-xl px-3 text-xs font-semibold ${camera === k ? 'bg-fuchsia-500 text-slate-950' : 'border border-white/10 bg-ink-900/80 text-fuchsia-100'}`}
+              className={`min-h-11 shrink-0 rounded-xl px-3 text-xs font-semibold ${camera === k ? 'bg-fuchsia-500 text-on-accent' : 'border border-white/10 bg-ink-900/80 text-fuchsia-100'}`}
             >
               🎥 {AV_CAMERAS[k].th}
             </button>

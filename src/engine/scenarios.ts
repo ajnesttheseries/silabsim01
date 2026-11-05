@@ -165,7 +165,7 @@ export interface ScenarioResult {
   scenario: Scenario
   pass: boolean
   checks: Array<Expectation & { actual: boolean; ok: boolean }>
-  readings: { temp: number | null; light: number | null; soil: number | null }
+  readings: { temp: number | null; light: number | null; soil: number | null; motion: boolean | null }
 }
 
 export function runScenarioTests(
@@ -199,7 +199,7 @@ export function runScenarioTests(
       scenario: sc,
       pass: checks.every((c) => c.ok),
       checks,
-      readings: { temp: sim.readings.temp, light: sim.readings.light, soil: sim.readings.soil },
+      readings: { temp: sim.readings.temp, light: sim.readings.light, soil: sim.readings.soil, motion: sim.readings.hasPir ? sim.readings.motion : null },
     })
   })
   return { results, score: results.filter((r) => r.pass).length, total: results.length }

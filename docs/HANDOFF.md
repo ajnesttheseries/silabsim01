@@ -1,5 +1,7 @@
 # ส่งต่องาน (Handoff) — branch `wip/curriculum-fixes`
 
+> ✅ **อัปเดต 5 พ.ย. 2026:** งานทั้งหมดในเอกสารนี้ทำเสร็จแล้ว ดูผลลัพธ์ที่ [`DELIVERY_REPORT.md`](DELIVERY_REPORT.md) เอกสารนี้เก็บไว้เป็นบันทึกเท่านั้น
+
 **สำหรับคุณ:** ถ้าจะให้ Claude ทำต่อบน Cloud ให้เปิด claude.ai/code → เลือก repo `ajnesttheseries/silabsim01` → เลือก branch `wip/curriculum-fixes` แล้วพิมพ์ว่า:
 
 > อ่าน `docs/HANDOFF.md` แล้วทำงานที่เหลือให้เสร็จ

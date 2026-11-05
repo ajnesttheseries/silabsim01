@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { MISSIONS } from '../engine/missions'
 import { useLab, type Quality } from '../store/lab'
-import { Btn, fmtDuration, Modal } from './common'
+import { Btn, fmtDuration, Modal, ThemeToggle } from './common'
 
 function Timer() {
   const startedAt = useLab((s) => s.progress.startedAt)
@@ -62,6 +62,10 @@ export function TopBar() {
       </Btn>
       <Modal open={menu} onClose={() => setMenu(false)} title="ตั้งค่าและเมนู">
         <div className="space-y-4 text-sm">
+          <div>
+            <p className="mb-2 font-semibold text-cyan-100">ธีมหน้าจอ (ฉาก 3D มืดเสมอ)</p>
+            <ThemeToggle withLabel />
+          </div>
           <div>
             <p className="mb-2 font-semibold text-cyan-100">คุณภาพกราฟิก</p>
             <div className="flex flex-wrap gap-2">

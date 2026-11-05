@@ -1,8 +1,9 @@
 import { describe, expect, it } from 'vitest'
 import { cardioid, computeLevels, defaultMixer, delayMs, distanceLoss, GEO, singerSpl, TARGET, type MixerState } from './audio'
 import { buildUniverse, checkAddresses, colorName, CONSOLE_PATCH, defaultAddresses, defaultConsole, fixtureOutput } from './dmx'
+import { avGuideSteps } from './missions'
 import { analyzePatch, orientCable, type Cable } from './patch'
-import { aimValues, beamDirection, beamHit, FIXTURE_POS, rigOutput, runShowTest, SINGER_SPOT, SOLUTION_CUES } from './show'
+import { aimValues, beamDirection, beamHit, defaultExhibit, FIXTURE_POS, rigOutput, runExhibitTest, runShowTest, SINGER_SPOT, SOLUTION_CUES, SOLUTION_EXHIBIT } from './show'
 import { AUDIO_CABLES, DMX_CABLES, MONITOR_CABLES, SOLUTION_ADDRESSES } from './solutions'
 
 const on = (m: Partial<MixerState> = {}): MixerState => ({ ...defaultMixer(), mixerOn: true, ampOn: true, ...m })
@@ -139,6 +140,24 @@ describe('show test', () => {
     expect(factory.checkpoints[1].checks[0].ok).toBe(false)
     const noDmx = analyzePatch(AUDIO_CABLES)
     expect(runShowTest(SOLUTION_CUES(), SOLUTION_ADDRESSES(), noDmx, mixer).score).toBeLessThan(3)
+  })
+  it('interactive exhibit: reference scenes pass, unchanged defaults and factory addresses fail', () => {
+    const r = runExhibitTest(SOLUTION_EXHIBIT(), SOLUTION_ADDRESSES(), patch, mixer)
+    expect(r.checkpoints.flatMap((c) => c.checks.filter((x) => !x.ok).map((x) => x.th))).toEqual([])
+    expect(r.score).toBe(2)
+    expect(runExhibitTest(defaultExhibit(), SOLUTION_ADDRESSES(), patch, mixer).score).toBeLessThan(2)
+    const factory = runExhibitTest(SOLUTION_EXHIBIT(), defaultAddresses(), patch, mixer)
+    expect(factory.checkpoints[1].checks[0].ok).toBe(false) // the spotlight never lands
+    // narration needs a working sound system
+    expect(runExhibitTest(SOLUTION_EXHIBIT(), SOLUTION_ADDRESSES(), analyzePatch(DMX_CABLES), mixer).checkpoints[1].pass).toBe(false)
+  })
+  it('mission 5 guide asks for a challenge first, then follows the chosen one', () => {
+    expect(avGuideSteps(5, { challenge: null }).map((x) => x.kind)).toEqual(['choose'])
+    expect(avGuideSteps(5, { challenge: 'exhibit' }).map((x) => x.kind)).toEqual(['choose', 'scene', 'scene', 'exhibitTest'])
+    const concert = avGuideSteps(5, { challenge: 'concert' }).map((x) => x.kind)
+    expect(concert[0]).toBe('choose')
+    expect(concert).toContain('cue')
+    expect(concert).toContain('test')
   })
   it('rig output follows cue colours through DMX', () => {
     const rig = rigOutput({ ...defaultConsole(), par1: [255, 255, 0, 255] }, SOLUTION_ADDRESSES(), patch)

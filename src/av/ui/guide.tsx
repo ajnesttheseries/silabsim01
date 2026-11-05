@@ -4,7 +4,7 @@ import { useLab } from '../../store/lab'
 import { Btn, ByteBot } from '../../ui/common'
 import { avGuide, AV_MISSIONS, type AvGuideStep } from '../engine/missions'
 import { PORTS } from '../engine/patch'
-import type { Cue } from '../engine/show'
+import { SOLUTION_EXHIBIT, type Cue } from '../engine/show'
 import { avSound } from '../sound'
 import { avCtx, useAv } from '../store'
 
@@ -99,6 +99,31 @@ function Action({ step }: { step: AvGuideStep }) {
       return (
         <Btn variant="primary" onClick={s.runShowTest}>
           🧪 ทดสอบโชว์อัตโนมัติ
+        </Btn>
+      )
+    case 'choose':
+      return <Btn onClick={() => s.setTab('mission')}>📋 เปิดแผงภารกิจ</Btn>
+    case 'scene': {
+      const which = step.scene!
+      return (
+        <Btn
+          variant="primary"
+          onClick={() => {
+            s.updateScene(which, SOLUTION_EXHIBIT()[which])
+            s.setExhibitDemo(true)
+            s.setVisitor(which === 'visitor')
+            s.setTab('show')
+            s.setCamera('overview')
+          }}
+        >
+          ＋ ใส่ค่าฉาก{which === 'visitor' ? ' "มีผู้ชม"' : ' "ไม่มีผู้ชม"'} แล้วลองปรับเอง
+        </Btn>
+      )
+    }
+    case 'exhibitTest':
+      return (
+        <Btn variant="primary" onClick={s.runExhibitTest}>
+          🧪 ทดสอบนิทรรศการอัตโนมัติ
         </Btn>
       )
     case 'observe':

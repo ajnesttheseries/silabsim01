@@ -7,7 +7,7 @@ import { TARGET } from '../engine/audio'
 import { checkAddresses, COLOR_TH, colorName, CONSOLE_PATCH, FIXTURES, footprintOf, PROFILE, PROFILE_TH, buildUniverse, fixtureType } from '../engine/dmx'
 import { AV_FIND_LIST, AV_FIND_TARGET, AV_FINAL_QUIZ, AV_MINI_QUIZ, AV_MISSIONS, avObjectives, COLOR_TARGETS, M4_QUESTION } from '../engine/missions'
 import { DEVICES, PORTS, familyOf, type PatchIssue } from '../engine/patch'
-import { cueAt, cueToConsole, MOVER_TH, SHOW_LENGTH, SONG, WALL_TH, type MoverMode, type ParColor, type WallMode } from '../engine/show'
+import { cueAt, cueToConsole, MOVER_TH, SHOW_LENGTH, SONG, WALL_TH, type Checkpoint, type MoverMode, type ParColor, type SceneState, type WallMode } from '../engine/show'
 import { FAMILY_HEX } from '../scene/layout'
 import { avSound } from '../sound'
 import { avCtx, useAv } from '../store'
@@ -49,7 +49,7 @@ export function AvMissionPanel() {
   const done = p.completed.includes(m.id)
   const next = AV_MISSIONS[m.id + 1]
   const level = p.hintLevel[m.id] ?? 0
-  const sol = ({ 2: 'dmx', 3: 'audio', 4: 'monitor', 5: 'cues' } as const)[m.id as 2]
+  const sol = m.id === 5 && p.challenge === 'exhibit' ? 'exhibit' : ({ 2: 'dmx', 3: 'audio', 4: 'monitor', 5: 'cues' } as const)[m.id as 2]
   return (
     <div className="space-y-3">
       <div className="flex gap-1 overflow-x-auto scroll-thin pb-1">
@@ -122,7 +122,33 @@ export function AvMissionPanel() {
           </div>
         </Section>
       )}
-      {m.id === 5 && <ShowTargets />}
+      {m.id === 5 && (
+        <Section title="เลือกโจทย์ท้าทาย">
+          <div className="grid gap-2 sm:grid-cols-2" role="radiogroup" aria-label="เลือกโจทย์ท้าทาย">
+            {(
+              [
+                { id: 'concert', icon: '🎤', th: 'โชว์คอนเสิร์ต', d: 'เขียน Cue list ให้แสง จอ และไมค์เปลี่ยนเองตามเพลง 32 วินาที' },
+                { id: 'exhibit', icon: '🏛️', th: 'นิทรรศการอินเทอร์แอคทีฟ', d: 'เซนเซอร์ตรวจจับผู้ชม แล้วแสง จอ และเสียงบรรยายทำงานเอง' },
+              ] as const
+            ).map((o) => (
+              <button
+                key={o.id}
+                role="radio"
+                aria-checked={p.challenge === o.id}
+                onClick={() => s.chooseChallenge(o.id)}
+                className={`min-h-11 rounded-xl border p-2 text-left text-sm ${p.challenge === o.id ? 'border-fuchsia-300 bg-fuchsia-500/20' : 'border-white/10 hover:bg-white/5'}`}
+              >
+                <span className="font-bold">
+                  {o.icon} {o.th}
+                </span>
+                <span className="block text-xs text-slate-300">{o.d}</span>
+              </button>
+            ))}
+          </div>
+        </Section>
+      )}
+      {m.id === 5 && p.challenge === 'concert' && <ShowTargets />}
+      {m.id === 5 && p.challenge === 'exhibit' && <ExhibitTargets />}
       {m.id === 6 && (
         <Section title="แบบทดสอบ 5 ข้อ">
           <Quiz qs={AV_FINAL_QUIZ} answers={p.finalAnswers} onAnswer={s.answerFinal} oneAtATime />
@@ -505,28 +531,147 @@ function ShowTargets() {
           ผลทดสอบล่าสุด: <span className={score.score >= 4 ? 'text-emerald-300' : 'text-amber-300'}>{score.score}/{score.total}</span>
         </p>
       )}
-      <ul className="space-y-1.5">
-        {list.map((cp) => (
-          <li key={cp.t} className={`rounded-lg p-2 text-xs ${cp.pass ? 'bg-emerald-900/40' : 'bg-ink-800'}`}>
-            <p className="font-semibold">
-              {cp.pass ? '✅' : '⬜'} {cp.th}
+      <CheckpointList list={list} />
+    </Section>
+  )
+}
+
+function CheckpointList({ list }: { list: Checkpoint[] }) {
+  return (
+    <ul className="space-y-1.5">
+      {list.map((cp) => (
+        <li key={cp.t} className={`rounded-lg p-2 text-xs ${cp.pass ? 'bg-emerald-900/40' : 'bg-ink-800'}`}>
+          <p className="font-semibold">
+            {cp.pass ? '✅' : '⬜'} {cp.th}
+          </p>
+          {cp.checks.map((c) => (
+            <p key={c.th} className={c.ok ? 'text-emerald-200' : 'text-slate-300'}>
+              {c.ok ? '✔' : '✘'} {c.th}
             </p>
-            {cp.checks.map((c) => (
-              <p key={c.th} className={c.ok ? 'text-emerald-200' : 'text-slate-300'}>
-                {c.ok ? '✔' : '✘'} {c.th}
-              </p>
-            ))}
-          </li>
-        ))}
-      </ul>
+          ))}
+        </li>
+      ))}
+    </ul>
+  )
+}
+
+function ExhibitTargets() {
+  const results = useAv((s) => s.exhibitResults)
+  const score = useAv((s) => s.progress.exhibitScore)
+  const live = useAv((s) => s.exhibitLive)
+  const run = useAv((s) => s.runExhibitTest)
+  return (
+    <Section title="เป้าหมายของนิทรรศการ (ระบบตรวจ 2 ฉาก)" right={<Btn variant="primary" onClick={run}>🧪 ทดสอบนิทรรศการ</Btn>}>
+      {score && (
+        <p className="mb-2 text-sm font-bold">
+          ผลทดสอบล่าสุด: <span className={score.score >= score.total ? 'text-emerald-300' : 'text-amber-300'}>{score.score}/{score.total}</span>
+        </p>
+      )}
+      <CheckpointList list={results ?? live.checkpoints} />
     </Section>
   )
 }
 
 const SEL = 'h-10 rounded-lg border border-white/15 bg-ink-900 px-1 text-xs text-cyan-50'
 
+/** The stage-state fields shared by a concert cue and an exhibit scene. */
+function SceneFields({ v, onChange }: { v: SceneState; onChange: (p: Partial<SceneState>) => void }) {
+  return (
+    <div className="grid grid-cols-2 gap-1.5 text-xs sm:grid-cols-3">
+      <label>
+        สี PAR
+        <select className={`${SEL} w-full`} value={v.parColor} onChange={(e) => onChange({ parColor: e.target.value as ParColor })}>
+          {(['black', 'red', 'green', 'blue', 'yellow', 'magenta', 'cyan', 'white', 'amber'] as ParColor[]).map((x) => (
+            <option key={x} value={x}>
+              {COLOR_TH[x]}
+            </option>
+          ))}
+        </select>
+      </label>
+      <label>
+        ความสว่าง PAR {v.parLevel}%
+        <input type="range" min={0} max={100} step={5} value={v.parLevel} onChange={(e) => onChange({ parLevel: Number(e.target.value) })} className="h-8 w-full accent-fuchsia-400" />
+      </label>
+      <label>
+        Moving Head
+        <select className={`${SEL} w-full`} value={v.mover} onChange={(e) => onChange({ mover: e.target.value as MoverMode })}>
+          {(Object.keys(MOVER_TH) as MoverMode[]).map((x) => (
+            <option key={x} value={x}>
+              {MOVER_TH[x]}
+            </option>
+          ))}
+        </select>
+      </label>
+      <label>
+        จอ LED
+        <select className={`${SEL} w-full`} value={v.wall} onChange={(e) => onChange({ wall: e.target.value as WallMode })}>
+          {(Object.keys(WALL_TH) as WallMode[]).map((x) => (
+            <option key={x} value={x}>
+              {WALL_TH[x]}
+            </option>
+          ))}
+        </select>
+      </label>
+      <label>
+        ไมค์
+        <select className={`${SEL} w-full`} value={v.mic} onChange={(e) => onChange({ mic: e.target.value as 'mute' | 'live' })}>
+          <option value="mute">ปิด (Mute)</option>
+          <option value="live">เปิด (Live)</option>
+        </select>
+      </label>
+    </div>
+  )
+}
+
+function ExhibitEditor() {
+  const s = useAv()
+  const scenes = [
+    { id: 'idle', th: '😴 ฉาก "ไม่มีผู้ชม"', d: 'ประหยัดไฟ: แสงสลัว จอโลโก้ ไมค์ปิด' },
+    { id: 'visitor', th: '🚶 ฉาก "มีผู้ชม"', d: 'ต้อนรับ: สปอตไลต์ส่องชิ้นงาน จอข้อมูล เสียงบรรยายดังชัด' },
+  ] as const
+  return (
+    <div className="space-y-3">
+      <Section
+        title="นิทรรศการอินเทอร์แอคทีฟ"
+        right={
+          <Btn
+            variant={s.exhibitDemo ? 'danger' : 'primary'}
+            onClick={() => {
+              avSound.unlock()
+              s.setExhibitDemo(!s.exhibitDemo)
+              if (!s.exhibitDemo) s.setCamera('overview')
+            }}
+          >
+            {s.exhibitDemo ? '⏹ หยุดสาธิต' : '▶ เปิดระบบสาธิต'}
+          </Btn>
+        }
+      >
+        <p className="text-sm text-slate-300">
+          เวทีนี้กลายเป็นห้องนิทรรศการ "นักร้องในตำนาน" เซนเซอร์ตรวจจับคน (PIR) ส่งสัญญาณให้ระบบเลือกฉาก: ไม่มีคน = ประหยัดพลังงาน, มีคนเดินเข้ามา = แสง จอ และเสียงบรรยายต้อนรับทันที
+        </p>
+        <div className="mt-2 flex flex-wrap items-center gap-2">
+          <Btn variant={s.visitor ? 'success' : 'soft'} aria-pressed={s.visitor} onClick={() => s.setVisitor(!s.visitor)}>
+            {s.visitor ? '🚶 มีผู้ชมอยู่ (กดเพื่อให้เดินออก)' : '🚶 ให้ผู้ชมเดินเข้ามา'}
+          </Btn>
+          <Pill className={s.exhibitDemo ? 'bg-emerald-500/25 text-emerald-100' : 'bg-white/5 text-slate-300'}>
+            {s.exhibitDemo ? `กำลังแสดงฉาก "${s.visitor ? 'มีผู้ชม' : 'ไม่มีผู้ชม'}"` : 'ระบบสาธิตปิดอยู่'}
+          </Pill>
+        </div>
+      </Section>
+      {scenes.map((sc) => (
+        <Section key={sc.id} title={sc.th}>
+          <p className="mb-1.5 text-xs text-slate-300">{sc.d}</p>
+          <SceneFields v={s.scenes[sc.id]} onChange={(p) => s.updateScene(sc.id, p)} />
+        </Section>
+      ))}
+      <ExhibitTargets />
+    </div>
+  )
+}
+
 export function AvShowPanel() {
   const s = useAv()
+  if (s.progress.challenge === 'exhibit') return <ExhibitEditor />
   const cues = [...s.cues].sort((a, b) => a.time - b.time)
   const t = s.live.showT
   return (
@@ -575,49 +720,7 @@ export function AvShowPanel() {
                   🗑
                 </Btn>
               </div>
-              <div className="grid grid-cols-2 gap-1.5 text-xs sm:grid-cols-3">
-                <label>
-                  สี PAR
-                  <select className={`${SEL} w-full`} value={c.parColor} onChange={(e) => s.updateCue(c.id, { parColor: e.target.value as ParColor })}>
-                    {(['black', 'red', 'green', 'blue', 'yellow', 'magenta', 'cyan', 'white', 'amber'] as ParColor[]).map((x) => (
-                      <option key={x} value={x}>
-                        {COLOR_TH[x]}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-                <label>
-                  ความสว่าง PAR {c.parLevel}%
-                  <input type="range" min={0} max={100} step={5} value={c.parLevel} onChange={(e) => s.updateCue(c.id, { parLevel: Number(e.target.value) })} className="h-8 w-full accent-fuchsia-400" />
-                </label>
-                <label>
-                  Moving Head
-                  <select className={`${SEL} w-full`} value={c.mover} onChange={(e) => s.updateCue(c.id, { mover: e.target.value as MoverMode })}>
-                    {(Object.keys(MOVER_TH) as MoverMode[]).map((x) => (
-                      <option key={x} value={x}>
-                        {MOVER_TH[x]}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-                <label>
-                  จอ LED
-                  <select className={`${SEL} w-full`} value={c.wall} onChange={(e) => s.updateCue(c.id, { wall: e.target.value as WallMode })}>
-                    {(Object.keys(WALL_TH) as WallMode[]).map((x) => (
-                      <option key={x} value={x}>
-                        {WALL_TH[x]}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-                <label>
-                  ไมค์
-                  <select className={`${SEL} w-full`} value={c.mic} onChange={(e) => s.updateCue(c.id, { mic: e.target.value as 'mute' | 'live' })}>
-                    <option value="mute">ปิด (Mute)</option>
-                    <option value="live">เปิด (Live)</option>
-                  </select>
-                </label>
-              </div>
+              <SceneFields v={c} onChange={(p) => s.updateCue(c.id, p)} />
             </div>
           ))}
         </div>

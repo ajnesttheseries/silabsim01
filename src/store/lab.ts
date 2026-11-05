@@ -154,6 +154,8 @@ interface LabState {
   quality: Quality
   autoQuality: 'low' | 'mid' | 'high'
   soundOn: boolean
+  /** 2D interface theme (the 3D scenes stay dark either way) */
+  theme: 'light' | 'dark'
   presenter: boolean
   dataFlow: boolean
   camera: { preset: CameraPreset; nonce: number }
@@ -217,6 +219,7 @@ interface LabState {
   setQuality(q: Quality): void
   setAutoQuality(q: 'low' | 'mid' | 'high'): void
   setSound(on: boolean): void
+  setTheme(theme: 'light' | 'dark'): void
   setPresenter(on: boolean): void
   setDataFlow(on: boolean): void
   setCamera(p: CameraPreset): void
@@ -328,6 +331,7 @@ export const useLab = create<LabState>()(
         quality: 'auto',
         autoQuality: 'high',
         soundOn: true,
+        theme: 'light',
         presenter: false,
         dataFlow: true,
         camera: { preset: 'overview', nonce: 0 },
@@ -752,6 +756,7 @@ export const useLab = create<LabState>()(
           setMuted(!soundOn)
           set({ soundOn })
         },
+        setTheme: (theme) => set({ theme }),
         setPresenter: (presenter) => set({ presenter }),
         setDataFlow: (dataFlow) => set({ dataFlow }),
         setCamera: (preset) => {
@@ -783,6 +788,7 @@ export const useLab = create<LabState>()(
         progress: s.progress,
         quality: s.quality,
         soundOn: s.soundOn,
+        theme: s.theme,
         dataFlow: s.dataFlow,
         guided: s.guided,
         noise: s.noise,

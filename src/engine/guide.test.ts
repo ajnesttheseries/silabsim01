@@ -140,6 +140,17 @@ describe('guided mode', () => {
     expect(w.flags.auto?.score).toBe(4)
   })
 
+  it('mission 5 smart pet home: following every step passes the automatic test', () => {
+    const w = newWorld()
+    w.challenge = 'pet'
+    const { g } = walk(5, w)
+    expect(g.current).toBeNull()
+    expect(w.flags.auto?.score).toBe(4)
+    const r = validateCircuit(w.circuit)
+    expect(Object.values(r.modules).filter((m) => m.ok)).toHaveLength(2) // DHT + PIR
+    expect(r.fans[0].status).toBe('via-driver')
+  })
+
   it('accepts any hole in the same breadboard column', () => {
     const w = newWorld()
     w.circuit.usbConnected = true

@@ -64,7 +64,7 @@ export function beamHit(from: V3, dir: V3, y = STAGE_Y): V3 | null {
 /* ---------------- cues ---------------- */
 
 export type MoverMode = 'off' | 'singer' | 'audience' | 'sweep'
-export type WallMode = 'off' | 'logo' | 'visualizer' | 'lyrics'
+export type WallMode = 'off' | 'logo' | 'visualizer' | 'lyrics' | 'info'
 export type ParColor = Exclude<ColorName, 'mixed'>
 
 export interface Cue {
@@ -79,7 +79,7 @@ export interface Cue {
 }
 
 export const MOVER_TH: Record<MoverMode, string> = { off: 'ปิด', singer: 'ส่องนักร้อง (Spotlight)', audience: 'ส่องผู้ชม', sweep: 'ส่ายไปมา' }
-export const WALL_TH: Record<WallMode, string> = { off: 'ปิดจอ', logo: 'โลโก้งาน', visualizer: 'ภาพเต้นตามเพลง', lyrics: 'เนื้อเพลง' }
+export const WALL_TH: Record<WallMode, string> = { off: 'ปิดจอ', logo: 'โลโก้งาน', visualizer: 'ภาพเต้นตามเพลง', lyrics: 'เนื้อเพลง', info: 'ข้อมูลนิทรรศการ' }
 
 export const BLACKOUT: Omit<Cue, 'id' | 'time' | 'name'> = { parColor: 'black', parLevel: 0, mover: 'off', wall: 'off', mic: 'mute' }
 
@@ -131,6 +131,16 @@ export interface Checkpoint {
 const PARS = ['par1', 'par2', 'par3', 'par4']
 const MOVERS = ['mover1', 'mover2']
 
+/** At least one lit moving head lands its beam on the singer / exhibit spot. */
+function onSpot(rig: Record<string, FixtureOutput>) {
+  return MOVERS.some((m) => {
+    const o = rig[m]
+    if (o.intensity < 0.5) return false
+    const hit = beamHit(FIXTURE_POS[m], beamDirection(o.pan, o.tilt))
+    return !!hit && Math.hypot(hit[0] - SINGER_SPOT[0], hit[2] - SINGER_SPOT[2]) < 1.2
+  })
+}
+
 export function runShowTest(cues: Cue[], addresses: Record<string, number>, patch: PatchReport, mixer: MixerState) {
   const at = (t: number) => {
     const cue = cueAt(cues, t)
@@ -142,13 +152,7 @@ export function runShowTest(cues: Cue[], addresses: Record<string, number>, patc
     return lv.signal && lv.paBoxes > 0 && !lv.feedback
   }
   const parColors = (rig: Record<string, FixtureOutput>) => PARS.map((p) => colorName(rig[p].r, rig[p].g, rig[p].b))
-  const onSinger = (rig: Record<string, FixtureOutput>) =>
-    MOVERS.some((m) => {
-      const o = rig[m]
-      if (o.intensity < 0.5) return false
-      const hit = beamHit(FIXTURE_POS[m], beamDirection(o.pan, o.tilt))
-      return !!hit && Math.hypot(hit[0] - SINGER_SPOT[0], hit[2] - SINGER_SPOT[2]) < 1.2
-    })
+  const onSinger = onSpot
 
   const cps: Checkpoint[] = []
   {
@@ -208,3 +212,53 @@ export const SOLUTION_CUES = (): Cue[] => [
   { id: 'q4', time: 24, name: 'Outro', parColor: 'amber', parLevel: 50, mover: 'singer', wall: 'lyrics', mic: 'live' },
   { id: 'q5', time: 28, name: 'Blackout', parColor: 'black', parLevel: 0, mover: 'off', wall: 'off', mic: 'mute' },
 ]
+
+/* ---------------- interactive exhibit (Sensing & AI bridge) ---------------- */
+
+/** A stage state without timing: what the room looks and sounds like. */
+export type SceneState = Omit<Cue, 'id' | 'time' | 'name'>
+export interface ExhibitScenes {
+  /** nobody near the exhibit */
+  idle: SceneState
+  /** the motion sensor detects a visitor */
+  visitor: SceneState
+}
+
+export const defaultExhibit = (): ExhibitScenes => ({
+  idle: { parColor: 'blue', parLevel: 40, mover: 'off', wall: 'logo', mic: 'mute' },
+  visitor: { parColor: 'blue', parLevel: 40, mover: 'off', wall: 'logo', mic: 'mute' },
+})
+
+export const SOLUTION_EXHIBIT = (): ExhibitScenes => ({
+  idle: { parColor: 'amber', parLevel: 20, mover: 'off', wall: 'logo', mic: 'mute' },
+  visitor: { parColor: 'amber', parLevel: 70, mover: 'singer', wall: 'info', mic: 'live' },
+})
+
+/** Narration level at the mic while a visitor is present (a guide speaking close to the mic). */
+export const NARRATION_SPL = 98
+
+export function runExhibitTest(scenes: ExhibitScenes, addresses: Record<string, number>, patch: PatchReport, mixer: MixerState) {
+  const rigOf = (s: SceneState) => rigOutput(cueToConsole(s, 0), addresses, patch, 0)
+  const narrationWorks = () => {
+    const lv = computeLevels({ ...mixer, mixerOn: true, ampOn: true }, patch, NARRATION_SPL)
+    return lv.signal && lv.paBoxes > 0 && !lv.feedback
+  }
+  const idle = rigOf(scenes.idle)
+  const visit = rigOf(scenes.visitor)
+  const visitColors = PARS.map((p) => colorName(visit[p].r, visit[p].g, visit[p].b))
+  const checkpoints: Checkpoint[] = [
+    mk(0, 'ไม่มีผู้ชม: ห้องสงบ ประหยัดพลังงาน', [
+      { th: 'ไฟ PAR เปิดหรี่ ๆ (ไม่เกิน 30%) ให้ห้องไม่มืดสนิท', ok: PARS.every((p) => idle[p].intensity > 0.03 && idle[p].intensity <= 0.32) },
+      { th: 'สปอตไลต์ Moving Head ปิด', ok: MOVERS.every((m) => idle[m].intensity < 0.05) },
+      { th: 'จอ LED แสดงโลโก้ (พักหน้าจอ)', ok: scenes.idle.wall === 'logo' },
+      { th: 'เสียงบรรยายปิด', ok: scenes.idle.mic === 'mute' },
+    ]),
+    mk(1, 'เซนเซอร์ตรวจพบผู้ชม: นิทรรศการต้อนรับ', [
+      { th: 'สปอตไลต์ส่องที่หุ่นนักร้อง (ชิ้นงานจัดแสดง)', ok: onSpot(visit) },
+      { th: 'ไฟ PAR สว่างขึ้น (50% ขึ้นไป) โทนอุ่น: ส้ม (Amber) หรือขาว', ok: PARS.every((p) => visit[p].intensity >= 0.48) && visitColors.every((c) => c === 'amber' || c === 'white') },
+      { th: 'จอ LED แสดงข้อมูลนิทรรศการ', ok: scenes.visitor.wall === 'info' },
+      { th: 'เสียงบรรยายเปิด และออกลำโพงได้โดยไม่หอน', ok: scenes.visitor.mic === 'live' && narrationWorks() },
+    ]),
+  ]
+  return { checkpoints, score: checkpoints.filter((c) => c.pass).length, total: checkpoints.length }
+}
