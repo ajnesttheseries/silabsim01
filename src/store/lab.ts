@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
+import type { SheetState } from '../ui/LabSheet'
 import { describeHole } from '../engine/circuit/breadboard'
 import {
   CATALOG,
@@ -160,7 +161,7 @@ interface LabState {
   dataFlow: boolean
   camera: { preset: CameraPreset; nonce: number }
   panelTab: PanelTab
-  sheet: 'peek' | 'half' | 'full'
+  sheet: SheetState
   showSchematic: boolean
   showTheory: boolean
   toasts: Toast[]
@@ -224,7 +225,7 @@ interface LabState {
   setDataFlow(on: boolean): void
   setCamera(p: CameraPreset): void
   setTab(t: PanelTab): void
-  setSheet(s: 'peek' | 'half' | 'full'): void
+  setSheet(s: SheetState): void
   setSchematic(on: boolean): void
   setTheory(on: boolean): void
   toast(kind: Toast['kind'], text: string): void

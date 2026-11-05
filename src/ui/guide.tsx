@@ -33,7 +33,7 @@ export function GuideSync() {
     if (cur.camera && cur.camera !== st.camera.preset && st.progress.tutorial.seenIntro) st.setCamera(cur.camera)
     if (cur.panel && st.panelTab !== cur.panel) {
       st.setTab(cur.panel)
-      if (st.sheet === 'peek') st.setSheet('half')
+      if (st.sheet === 'peek' || st.sheet === 'hidden') st.setSheet('half')
     }
   }, [stepId])
   return null
@@ -146,7 +146,7 @@ function StepAction({ step }: { step: GuideStep }) {
 }
 
 /** Step card: floats over the 3D scene on desktop, docked into the bottom sheet on phones/tablets. */
-export function GuideCard({ docked = false }: { docked?: boolean }) {
+export function GuideCard({ docked = false, compact = false, onExpand }: { docked?: boolean; compact?: boolean; onExpand?: () => void }) {
   const g = useGuideView((s) => s.g)
   const guided = useLab((s) => s.guided)
   const setGuided = useLab((s) => s.setGuided)
@@ -159,18 +159,22 @@ export function GuideCard({ docked = false }: { docked?: boolean }) {
   if (!guided || !g) return null
   const step = g.current
   const header = (
-    <span className="text-xs font-bold text-cyan-300">
+    <span className="shrink-0 whitespace-nowrap text-xs font-bold text-cyan-300">
       🧭 พาทำ · {step ? `ขั้น ${g.index + 1}/${g.total}` : 'ครบทุกขั้นแล้ว'}
     </span>
   )
   const shell = docked ? 'w-full border-b border-cyan-400/20 bg-ink-900/90 px-3 py-2' : 'glass anim-pop pointer-events-auto w-[min(94vw,460px)] rounded-2xl p-3'
-  if (!open)
+  if (!open || compact)
     return (
       <button
         className={`${docked ? 'w-full border-b border-cyan-400/20 bg-ink-900/90' : 'glass pointer-events-auto max-w-[min(92vw,460px)] rounded-2xl'} flex min-h-11 items-center gap-2 px-3 text-left text-xs`}
-        onClick={() => setOpen(true)}
+        onClick={() => {
+          setOpen(true)
+          onExpand?.()
+        }}
       >
         {header}
+        {g.note && <span aria-label="มีคำเตือน">⚠️</span>}
         <span className="truncate text-cyan-50">{step?.title ?? 'ไปภารกิจถัดไปได้เลย'}</span>
       </button>
     )

@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect, useRef, useState } from 'react'
+import { lazy, Suspense, useEffect, useState } from 'react'
 import { useLab } from '../../store/lab'
 import { Btn, ByteBot, fmtDuration, Modal, Pill, ThemeToggle } from '../../ui/common'
 import { AV_STAGES } from '../../content'
@@ -8,7 +8,8 @@ import { AV_CAMERAS, type AvCameraPreset } from '../scene/layout'
 import { useAvSim } from '../sim'
 import { avSound } from '../sound'
 import { useAv, type AvTab } from '../store'
-import { AvGuideCard, AvGuideSync } from './guide'
+import { LabSheet } from '../../ui/LabSheet'
+import { AvGuideCard, AvGuideSync, useAvGuideView } from './guide'
 import { AvLightPanel, AvMissionPanel, AvPatchPanel, AvShowPanel, AvSoundPanel } from './panels'
 
 const AvScene = lazy(() => import('../scene/AvScene'))
@@ -296,67 +297,32 @@ function Panel({ desktop }: { desktop: boolean }) {
   const setTab = useAv((s) => s.setTab)
   const sheet = useAv((s) => s.sheet)
   const setSheet = useAv((s) => s.setSheet)
-  const startY = useRef<number | null>(null)
-  const body = (
-    <div className="min-h-0 flex-1 overflow-y-auto scroll-thin p-3">
-      {tab === 'mission' && <AvMissionPanel />}
-      {tab === 'patch' && <AvPatchPanel />}
-      {tab === 'light' && <AvLightPanel />}
-      {tab === 'sound' && <AvSoundPanel />}
-      {tab === 'show' && <AvShowPanel />}
-    </div>
-  )
-  const tabs = (
-    <nav className="flex shrink-0 gap-1 overflow-x-auto scroll-thin border-b border-white/10 px-2 py-1" role="tablist">
-      {TABS.map((t) => (
-        <button
-          key={t.id}
-          role="tab"
-          aria-selected={tab === t.id}
-          onClick={() => {
-            setTab(t.id)
-            if (!desktop && sheet === 'peek') setSheet('half')
-          }}
-          className={`flex min-h-11 shrink-0 items-center gap-1 rounded-xl px-3 text-sm font-semibold ${tab === t.id ? 'bg-fuchsia-500/20 text-fuchsia-100' : 'text-slate-300 hover:bg-white/5'}`}
-        >
-          <span aria-hidden>{t.icon}</span>
-          {t.th}
-        </button>
-      ))}
-    </nav>
-  )
-  if (desktop)
-    return (
-      <aside className="flex w-[440px] shrink-0 flex-col border-l border-white/10 bg-ink-950/95">
-        {tabs}
-        {body}
-      </aside>
-    )
-  const h = sheet === 'peek' ? 'max-h-[45%]' : sheet === 'half' ? 'h-[50%]' : 'h-[82%]'
+  const guided = useAv((s) => s.guided)
+  const g = useAvGuideView((s) => s.g)
+  const hiddenLabel = guided && g ? (g.current ? `🧭 ขั้น ${g.index + 1}/${g.total}` : '🧭 ครบทุกขั้นแล้ว') : undefined
   return (
-    <section className={`flex shrink-0 flex-col overflow-hidden rounded-t-3xl border-t border-fuchsia-400/30 bg-ink-950/98 transition-[height] duration-300 ${h}`}>
-      <button
-        aria-label="ปรับความสูงแผงควบคุม"
-        className="flex h-7 shrink-0 items-center justify-center"
-        onClick={() => setSheet(sheet === 'peek' ? 'half' : sheet === 'half' ? 'full' : 'peek')}
-        onPointerDown={(e) => (startY.current = e.clientY)}
-        onPointerUp={(e) => {
-          if (startY.current == null) return
-          const dy = e.clientY - startY.current
-          startY.current = null
-          if (Math.abs(dy) < 25) return
-          if (dy < 0) setSheet(sheet === 'peek' ? 'half' : 'full')
-          else setSheet(sheet === 'full' ? 'half' : 'peek')
-        }}
-      >
-        <span className="h-1.5 w-12 rounded-full bg-white/30" />
-      </button>
-      <div className="shrink-0">
-        <AvGuideCard docked />
-      </div>
-      {tabs}
-      {sheet !== 'peek' && body}
-    </section>
+    <LabSheet
+      desktop={desktop}
+      sheet={sheet}
+      setSheet={setSheet}
+      tabs={TABS}
+      tab={tab}
+      setTab={setTab}
+      accent="fuchsia"
+      width="w-[440px]"
+      hiddenLabel={hiddenLabel}
+      guide={<AvGuideCard docked />}
+      guideCompact={<AvGuideCard docked compact onExpand={() => setSheet('half')} />}
+      body={
+        <>
+          {tab === 'mission' && <AvMissionPanel />}
+          {tab === 'patch' && <AvPatchPanel />}
+          {tab === 'light' && <AvLightPanel />}
+          {tab === 'sound' && <AvSoundPanel />}
+          {tab === 'show' && <AvShowPanel />}
+        </>
+      }
+    />
   )
 }
 

@@ -34,7 +34,7 @@ export function AvGuideSync() {
     if (cur.camera && cur.camera !== st.camera.preset && st.progress.tutorial.seenIntro) st.setCamera(cur.camera)
     if (cur.panel && st.panelTab !== cur.panel) {
       st.setTab(cur.panel)
-      if (st.sheet === 'peek') st.setSheet('half')
+      if (st.sheet === 'peek' || st.sheet === 'hidden') st.setSheet('half')
     }
     if (cur.fixture) st.selectFixture(cur.fixture)
   }, [stepId])
@@ -150,7 +150,7 @@ function Action({ step }: { step: AvGuideStep }) {
   }
 }
 
-export function AvGuideCard({ docked = false }: { docked?: boolean }) {
+export function AvGuideCard({ docked = false, compact = false, onExpand }: { docked?: boolean; compact?: boolean; onExpand?: () => void }) {
   const g = useAvGuideView((s) => s.g)
   const guided = useAv((s) => s.guided)
   const setGuided = useAv((s) => s.setGuided)
@@ -162,12 +162,19 @@ export function AvGuideCard({ docked = false }: { docked?: boolean }) {
   const [open, setOpen] = useState(true)
   if (!guided || !g) return null
   const step = g.current
-  const header = <span className="text-xs font-bold text-fuchsia-300">🧭 พาทำ · {step ? `ขั้น ${g.index + 1}/${g.total}` : 'ครบทุกขั้นแล้ว'}</span>
+  const header = <span className="shrink-0 whitespace-nowrap text-xs font-bold text-fuchsia-300">🧭 พาทำ · {step ? `ขั้น ${g.index + 1}/${g.total}` : 'ครบทุกขั้นแล้ว'}</span>
   const shell = docked ? 'w-full border-b border-fuchsia-400/20 bg-ink-900/90 px-3 py-2' : 'glass anim-pop pointer-events-auto w-[min(94vw,460px)] rounded-2xl p-3'
-  if (!open)
+  if (!open || compact)
     return (
-      <button className={`${docked ? 'w-full border-b border-fuchsia-400/20 bg-ink-900/90' : 'glass pointer-events-auto rounded-2xl'} flex min-h-11 items-center gap-2 px-3 text-left text-xs`} onClick={() => setOpen(true)}>
+      <button
+        className={`${docked ? 'w-full border-b border-fuchsia-400/20 bg-ink-900/90' : 'glass pointer-events-auto rounded-2xl'} flex min-h-11 items-center gap-2 px-3 text-left text-xs`}
+        onClick={() => {
+          setOpen(true)
+          onExpand?.()
+        }}
+      >
         {header}
+        {g.note && <span aria-label="มีคำเตือน">⚠️</span>}
         <span className="truncate text-cyan-50">{step?.title ?? 'ไปภารกิจถัดไปได้เลย'}</span>
       </button>
     )

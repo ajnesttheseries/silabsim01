@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import { scoreQuiz } from '../engine/quiz'
+import type { SheetState } from '../ui/LabSheet'
 import { saveResult, type ResultRecord } from '../services/results'
 import { sfx } from '../services/sound'
 import { useLab } from '../store/lab'
@@ -97,7 +98,7 @@ interface AvState {
   selection: AvSelection
   camera: { preset: AvCamera; nonce: number }
   panelTab: AvTab
-  sheet: 'peek' | 'half' | 'full'
+  sheet: SheetState
   showTheory: boolean
 
   connect(port: string): void
@@ -137,7 +138,7 @@ interface AvState {
   setGuided(on: boolean): void
   setCamera(p: AvCamera): void
   setTab(t: AvTab): void
-  setSheet(s: 'peek' | 'half' | 'full'): void
+  setSheet(s: SheetState): void
   setTheory(on: boolean): void
   publish(live: AvLive): void
   finishLab(): void
