@@ -1,6 +1,7 @@
 # รายงานส่งมอบงาน — Virtual SI Lab (รอบปรับให้ตรงหลักสูตร)
 
-**Branch:** `wip/curriculum-fixes` (ยังไม่ merge เข้า `main` เว็บที่ deploy อยู่จึงยังเป็นเวอร์ชันเดิม)
+**Branch:** `wip/curriculum-fixes` (ยังไม่ merge เข้า `main`)
+**เว็บสำหรับใช้งานจริง:** ตั้ง GitHub Pages ไว้แล้ว เปิดใช้ครั้งเดียวที่ Settings → Pages → Source: GitHub Actions แล้ว merge เข้า `main` เว็บจะขึ้นที่ https://ajnesttheseries.github.io/silabsim01/ (ดู README ข้อ 2)
 **วันที่:** 5 พฤศจิกายน 2026
 **สถานะ:** ทำครบทั้ง 4 ข้อที่ตกลงกันไว้ และเพิ่มธีมสว่าง · type-check ผ่าน · unit test 82 ข้อผ่าน · production build ผ่าน · ทดสอบในเบราว์เซอร์แล้ว
 

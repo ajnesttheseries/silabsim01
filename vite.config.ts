@@ -5,6 +5,9 @@ import tailwindcss from '@tailwindcss/vite'
 
 export default defineConfig({
   plugins: [react(), tailwindcss()],
+  // relative asset paths: the same build works at a domain root (Vercel, Netlify)
+  // and under a sub-path such as GitHub Pages (/silabsim01/)
+  base: './',
   build: {
     chunkSizeWarningLimit: 1600,
     rollupOptions: {
