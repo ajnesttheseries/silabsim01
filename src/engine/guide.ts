@@ -319,9 +319,7 @@ const ruleStep = (id: string, sensor: SensorKey, op: Op, value: number, actuator
 
 function mission0(): GuideStep[] {
   return [
-    { id: 'm0-cam', kind: 'info', title: 'ลากบนฉากเพื่อหมุนกล้อง หรือกดปุ่ม 🎥 มุมกล้องด้านบน', why: 'ดูโต๊ะแล็บได้รอบทิศ ใช้ล้อเมาส์หรือสองนิ้วเพื่อซูม', check: (c) => c.tutorial.cam },
-    { id: 'm0-select', kind: 'select', title: 'แตะวัตถุ 1 ชิ้น เช่น บอร์ดหรือเบรดบอร์ด', why: 'เมื่อแตะ จะมีการ์ดข้อมูลขึ้นมาบอกหน้าที่ของอุปกรณ์', camera: 'breadboard', check: (c) => c.tutorial.select },
-    { id: 'm0-wire', kind: 'info', title: 'กด "〰️ ต่อสาย" แล้วแตะรูบนเบรดบอร์ด 2 รู', why: 'นี่คือวิธีต่อสายทุกเส้นในแล็บ (ลบสายนี้ทีหลังได้)', camera: 'breadboard', check: (c) => c.tutorial.wire },
+    { id: 'm0-intro', kind: 'info', title: 'อ่านแนะนำแล็บแล้วกด "เริ่มเลย"', why: 'จากนั้นภารกิจที่ 1 จะเริ่มเอง และโหมดพาทำจะชี้จุดที่ต้องแตะทีละขั้น', check: (c) => !!c.tutorial.seenIntro },
   ]
 }
 

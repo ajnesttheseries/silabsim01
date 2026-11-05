@@ -11,7 +11,12 @@ export function IntroModal() {
   const flag = useLab((s) => s.tutorialFlag)
   const [step, setStep] = useState(0)
   const open = !seen && current === 0
-  const close = () => flag('seenIntro')
+  // closing the intro passes mission 0; go straight on to mission 1
+  const close = () => {
+    flag('seenIntro')
+    const p = useLab.getState().progress
+    if (p.current === 0 && p.completed.includes(0)) useLab.getState().goMission(1)
+  }
   const pages = [
     <div key="0" className="text-center">
       <div className="mb-2 flex justify-center">

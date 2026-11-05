@@ -14,7 +14,7 @@ export interface AvCtx {
   rig: Record<string, FixtureOutput>
   found: string[]
   miniQuizCorrect: number
-  tutorial: { cam: boolean; select: boolean; cable: boolean }
+  tutorial: { cam: boolean; select: boolean; cable: boolean; seenIntro?: boolean }
   powerOrderOk: boolean
   gainOk: boolean
   loudOk: boolean
@@ -73,12 +73,10 @@ export const AV_MISSIONS: AvMission[] = [
     short: 'แนะนำแล็บ',
     minutes: 1,
     intro:
-      'ยินดีต้อนรับสู่เวทีคอนเสิร์ต! วิศวกรระบบภาพ เสียง และแสงอัจฉริยะ คือคนที่ทำให้ไฟ เสียง และจอภาพทั้งเวทีทำงานพร้อมกันอย่างแม่นยำ ตั้งแต่คอนเสิร์ต สตูดิโอ ไปจนถึงอาคารอัจฉริยะ เริ่มจากฝึกใช้แล็บกันก่อน',
-    objectives: [
-      { id: 'cam', th: 'หมุนหรือซูมกล้อง (หรือกดปุ่มมุมกล้อง)', check: (c) => c.tutorial.cam },
-      { id: 'select', th: 'แตะเลือกอุปกรณ์ในฉาก 1 ชิ้น', check: (c) => c.tutorial.select },
-      { id: 'cable', th: 'ลองเสียบสาย 1 เส้น (กด "เสียบสาย" แล้วแตะช่อง OUT และช่อง IN)', check: (c) => c.tutorial.cable },
-    ],
+      'ยินดีต้อนรับสู่เวทีคอนเสิร์ต! วิศวกรระบบภาพ เสียง และแสงอัจฉริยะ คือคนที่ทำให้ไฟ เสียง และจอภาพทั้งเวทีทำงานพร้อมกันอย่างแม่นยำ ตั้งแต่คอนเสิร์ต สตูดิโอ ไปจนถึงอาคารอัจฉริยะ',
+    // intro only: closing the welcome window passes this mission and opens mission 1
+    // (the old camera/select/cable practice left a stray cable behind in later missions)
+    objectives: [{ id: 'intro', th: 'อ่านแนะนำแล็บแล้วกด "เริ่มเลย"', check: (c) => !!c.tutorial.seenIntro }],
     theory: {
       title: 'งานของวิศวกรระบบภาพ เสียง และแสง',
       body: [
@@ -88,7 +86,7 @@ export const AV_MISSIONS: AvMission[] = [
         'ระบบอัตโนมัติ: Cue list และ Timecode ทำให้แสง เสียง ภาพ เปลี่ยนพร้อมกันตรงจังหวะเพลงทุกครั้ง',
       ],
     },
-    hints: ['ลากบนฉากเพื่อหมุนกล้อง ใช้ล้อเมาส์หรือสองนิ้วเพื่อซูม', 'กดปุ่ม "🔌 เสียบสาย" แตะช่อง OUT ของอุปกรณ์หนึ่ง แล้วแตะช่อง IN ของอีกอุปกรณ์ ลบสายได้ภายหลัง'],
+    hints: ['อ่านหน้าต่างแนะนำให้ครบ 3 หน้า แล้วกด "เริ่มเลย"', 'ลากบนฉากเพื่อหมุนกล้อง ใช้ล้อเมาส์หรือสองนิ้วเพื่อซูม'],
   },
   {
     id: 1,
@@ -368,9 +366,7 @@ export function avGuideSteps(mission: number, ctx?: Pick<AvCtx, 'challenge'>): A
   switch (mission) {
     case 0:
       return [
-        { id: 'm0-cam', kind: 'info', title: 'ลากบนฉากเพื่อหมุนกล้อง หรือกดปุ่ม 🎥 มุมกล้อง', why: 'ดูเวทีได้รอบทิศ ใช้ล้อเมาส์หรือสองนิ้วเพื่อซูม', check: (c) => c.tutorial.cam },
-        { id: 'm0-select', kind: 'select', title: 'แตะอุปกรณ์ 1 ชิ้น เช่น ไฟบนทรัสหรือลำโพง', why: 'จะมีการ์ดข้อมูลบอกหน้าที่ของอุปกรณ์', check: (c) => c.tutorial.select },
-        { id: 'm0-cable', kind: 'info', title: 'กด "🔌 เสียบสาย" แล้วแตะช่อง OUT และช่อง IN อย่างละ 1 ช่อง', why: 'นี่คือวิธีต่อสายทุกเส้นในแล็บ ลบสายนี้ทีหลังได้', camera: 'foh', check: (c) => c.tutorial.cable },
+        { id: 'm0-intro', kind: 'info', title: 'อ่านแนะนำแล็บแล้วกด "เริ่มเลย"', why: 'จากนั้นภารกิจที่ 1 จะเริ่มเอง และโหมดพาทำจะชี้จุดที่ต้องแตะทีละขั้น', check: (c) => !!c.tutorial.seenIntro },
       ]
     case 1:
       return [

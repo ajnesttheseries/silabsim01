@@ -14,7 +14,7 @@ export interface MissionCtx {
   actuators: Actuators
   found: ShelfItem[]
   miniQuizCorrect: number
-  tutorial: { cam: boolean; select: boolean; wire: boolean }
+  tutorial: { cam: boolean; select: boolean; wire: boolean; seenIntro?: boolean }
   blinkUsed: boolean
   obs: { tMin: number; tMax: number; lMin: number; lMax: number }
   ldrAnswerCorrect: boolean
@@ -60,12 +60,10 @@ export const MISSIONS: Mission[] = [
     short: 'แนะนำแล็บ',
     minutes: 1,
     intro:
-      'ยินดีต้อนรับสู่ห้องแล็บ AIoT! วิศวกรระบบ AIoT และสมองกลฝังตัวคือคนที่ "ใส่สมองอัจฉริยะ" ให้อุปกรณ์ธรรมดา ให้มันรับรู้สภาพแวดล้อม คิด และทำงานเองได้ เริ่มจากฝึกใช้แล็บกันก่อน',
-    objectives: [
-      { id: 'cam', th: 'หมุนหรือซูมกล้อง (หรือกดปุ่มมุมกล้อง)', check: (c) => c.tutorial.cam },
-      { id: 'select', th: 'แตะเลือกวัตถุในฉาก 1 ชิ้น', check: (c) => c.tutorial.select },
-      { id: 'wire', th: 'ลองต่อสาย 1 เส้น (กด "ต่อสาย" แล้วแตะจุดเริ่มและจุดปลาย)', check: (c) => c.tutorial.wire },
-    ],
+      'ยินดีต้อนรับสู่ห้องแล็บ AIoT! วิศวกรระบบ AIoT และสมองกลฝังตัวคือคนที่ "ใส่สมองอัจฉริยะ" ให้อุปกรณ์ธรรมดา ให้มันรับรู้สภาพแวดล้อม คิด และทำงานเองได้',
+    // intro only: closing the welcome window passes this mission and opens mission 1
+    // (the old camera/select/wire practice left a stray wire behind in later missions)
+    objectives: [{ id: 'intro', th: 'อ่านแนะนำแล็บแล้วกด "เริ่มเลย"', check: (c) => !!c.tutorial.seenIntro }],
     theory: {
       title: 'AIoT คืออะไร',
       body: [
@@ -75,7 +73,7 @@ export const MISSIONS: Mission[] = [
         'ในด่านที่ 1 นี้ เราจะเริ่มจากพื้นฐานที่สุด: ฮาร์ดแวร์และเซนเซอร์ "ตาและหู" ของระบบ',
       ],
     },
-    hints: ['ลากนิ้วหรือเมาส์บนฉากเพื่อหมุนกล้อง ใช้สองนิ้วหรือล้อเมาส์เพื่อซูม', 'กดปุ่ม "ต่อสาย" ด้านล่างฉาก แล้วแตะรูบนเบรดบอร์ด 1 รู และอีก 1 รู จะได้สาย 1 เส้น ลบได้ภายหลัง'],
+    hints: ['อ่านหน้าต่างแนะนำให้ครบ 3 หน้า แล้วกด "เริ่มเลย"', 'ลากนิ้วหรือเมาส์บนฉากเพื่อหมุนกล้อง ใช้สองนิ้วหรือล้อเมาส์เพื่อซูม'],
   },
   {
     id: 1,

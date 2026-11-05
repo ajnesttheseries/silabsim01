@@ -333,6 +333,12 @@ function Intro() {
   const nickname = useLab((s) => s.profile.nickname)
   const [step, setStep] = useState(0)
   const open = !seen && current === 0
+  // closing the intro passes mission 0; go straight on to mission 1
+  const close = () => {
+    flag('seenIntro')
+    const p = useAv.getState().progress
+    if (p.current === 0 && p.completed.includes(0)) useAv.getState().goMission(1)
+  }
   const pages = [
     <div key="0" className="text-center">
       <div className="mb-2 flex justify-center">
@@ -369,7 +375,7 @@ function Intro() {
     </div>,
   ]
   return (
-    <Modal open={open} onClose={() => flag('seenIntro')} title={['ยินดีต้อนรับสู่ AV & Lighting Lab', 'แผนที่ด่าน', 'สอนใช้งาน'][step]}>
+    <Modal open={open} onClose={close} title={['ยินดีต้อนรับสู่ AV & Lighting Lab', 'แผนที่ด่าน', 'สอนใช้งาน'][step]}>
       {pages[step]}
       <div className="mt-4 flex items-center justify-between">
         <span className="text-xs text-slate-400">
@@ -382,7 +388,7 @@ function Intro() {
               ถัดไป →
             </Btn>
           ) : (
-            <Btn variant="primary" onClick={() => flag('seenIntro')}>
+            <Btn variant="primary" onClick={close}>
               เริ่มเลย! 🎸
             </Btn>
           )}
