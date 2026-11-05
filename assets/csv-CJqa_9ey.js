@@ -1,0 +1,2 @@
+function e(e,t){let n=e=>{if(e==null)return``;let t=String(e);return/[",\n\r]/.test(t)?`"${t.replace(/"/g,`""`)}"`:t};return`﻿`+[e,...t].map(e=>e.map(n).join(`,`)).join(`\r
+`)}function t(e,t,n=`text/csv;charset=utf-8`){let r=new Blob([t],{type:n}),i=URL.createObjectURL(r),a=document.createElement(`a`);a.href=i,a.download=e,document.body.appendChild(a),a.click(),a.remove(),setTimeout(()=>URL.revokeObjectURL(i),2e3)}export{e as n,t};
