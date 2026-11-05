@@ -30,7 +30,7 @@ import { setMuted, sfx } from '../services/sound'
 
 export const sim = new LabSim(Math.floor(Math.random() * 1e6))
 
-export type Route = 'landing' | 'lab' | 'summary' | 'staff' | 'av' | 'avsummary'
+export type Route = 'landing' | 'lab' | 'summary' | 'staff' | 'av' | 'avsummary' | 'twin' | 'twinsummary'
 export type Mode = 'select' | 'wire' | 'measure'
 export type Quality = 'auto' | 'low' | 'mid' | 'high'
 export type PanelTab = 'mission' | 'circuit' | 'env' | 'monitor' | 'rules'

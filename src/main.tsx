@@ -9,6 +9,7 @@ if (import.meta.env.DEV) {
   Object.assign(window, { __lab: useLab, __sim: sim })
   void import('./ui/guide').then((m) => Object.assign(window, { __guide: m.useGuideView }))
   void import('./av/store').then((m) => Object.assign(window, { __av: m.useAv }))
+  void import('./twin/store').then((m) => Object.assign(window, { __twin: m.useTwin }))
 }
 
 createRoot(document.getElementById('root')!).render(

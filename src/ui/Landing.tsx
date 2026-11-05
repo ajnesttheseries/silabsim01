@@ -1,8 +1,10 @@
 import { useState } from 'react'
 import { useAv } from '../av/store'
 import { AV_MISSIONS } from '../av/engine/missions'
-import { AV_STAGES, CAREERS, PROGRAM, STAGES } from '../content'
+import { AV_STAGES, CAREERS, PROGRAM, STAGES, TWIN_STAGES } from '../content'
 import { MISSIONS } from '../engine/missions'
+import { TWIN_MISSIONS } from '../twin/engine/missions'
+import { useTwin } from '../twin/store'
 import { useLab } from '../store/lab'
 import { Btn, ByteBot, Pill, ThemeToggle } from './common'
 
@@ -17,7 +19,7 @@ function hasWebGL() {
 
 interface LabCardProps {
   icon: string
-  accent: 'cyan' | 'fuchsia'
+  accent: 'cyan' | 'fuchsia' | 'teal'
   career: string
   careerEn: string
   title: string
@@ -32,11 +34,12 @@ interface LabCardProps {
 }
 
 function LabCard(p: LabCardProps) {
-  const ring = p.accent === 'cyan' ? 'border-cyan-400/60 bg-cyan-400/10' : 'border-fuchsia-400/60 bg-fuchsia-400/10'
+  const ring = { cyan: 'border-cyan-400/60 bg-cyan-400/10', fuchsia: 'border-fuchsia-400/60 bg-fuchsia-400/10', teal: 'border-teal-400/60 bg-teal-400/10' }[p.accent]
+  const sub = { cyan: 'text-cyan-300', fuchsia: 'text-fuchsia-300', teal: 'text-teal-300' }[p.accent]
   return (
     <div className={`flex flex-col rounded-3xl border p-4 ${ring}`}>
       <div className="mb-1 text-3xl">{p.icon}</div>
-      <p className={`text-xs font-semibold ${p.accent === 'cyan' ? 'text-cyan-300' : 'text-fuchsia-300'}`}>{p.careerEn}</p>
+      <p className={`text-xs font-semibold ${sub}`}>{p.careerEn}</p>
       <h2 className="text-lg font-extrabold text-white">{p.career}</h2>
       <p className="mb-1 text-sm font-semibold text-slate-100">{p.title}</p>
       <p className="mb-3 text-sm text-slate-300">{p.desc}</p>
@@ -74,6 +77,8 @@ export function Landing() {
   const setRoute = useLab((s) => s.setRoute)
   const avProgress = useAv((s) => s.progress)
   const avRestart = useAv((s) => s.restartAll)
+  const twinProgress = useTwin((s) => s.progress)
+  const twinRestart = useTwin((s) => s.restartAll)
   const [nick, setNick] = useState(profile.nickname)
   const [school, setSchool] = useState(profile.school)
   const webgl = hasWebGL()
@@ -83,6 +88,11 @@ export function Landing() {
     saveProfile()
     if (!avProgress.startedAt) useAv.setState({ progress: { ...avProgress, startedAt: Date.now() } })
     setRoute('av')
+  }
+  const startTwin = () => {
+    saveProfile()
+    if (!twinProgress.startedAt) useTwin.setState({ progress: { ...twinProgress, startedAt: Date.now() } })
+    setRoute('twin')
   }
 
   return (
@@ -130,7 +140,7 @@ export function Landing() {
           </div>
         </section>
 
-        <section className="mb-8 grid gap-4 md:grid-cols-2">
+        <section className="mb-8 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
           <LabCard
             icon="🤖"
             accent="cyan"
@@ -164,6 +174,21 @@ export function Landing() {
             onStart={startAv}
             onRestart={() => ask('เริ่มแล็บ AV ใหม่ทั้งหมด? ความคืบหน้าในเครื่องนี้จะถูกล้าง', avRestart)}
           />
+          <LabCard
+            icon="🪞"
+            accent="teal"
+            career="วิศวกรดิจิทัลทวิน"
+            careerEn="Digital Twin Engineer"
+            title="Virtual Digital Twin Lab: จำลองข้อมูลจริง"
+            desc="ติดเซนเซอร์ให้หุ่นยนต์ผู้ช่วย NOVA-1 แล้วดูร่างแฝดบนโต๊ะโฮโลแกรมประกอบร่างทีละชิ้นตามข้อมูลจริง ตั้งอัตราการวัด ปรับเทียบ และใช้แฝดเฝ้าระวังไม่ให้หุ่นพังกลางโชว์"
+            stages={TWIN_STAGES}
+            done={twinProgress.completed.length}
+            total={TWIN_MISSIONS.length}
+            started={twinProgress.startedAt !== null}
+            disabled={!webgl}
+            onStart={startTwin}
+            onRestart={() => ask('เริ่มแล็บดิจิทัลทวินใหม่ทั้งหมด? ความคืบหน้าในเครื่องนี้จะถูกล้าง', twinRestart)}
+          />
         </section>
 
         <section className="mb-8">
@@ -190,6 +215,7 @@ export function Landing() {
                     disabled={!webgl}
                     onClick={() => {
                       if (c.lab === 'av') startAv()
+                      else if (c.lab === 'twin') startTwin()
                       else {
                         saveProfile()
                         startLab()

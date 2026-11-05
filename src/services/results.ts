@@ -4,8 +4,8 @@
  */
 import type { SupabaseClient } from '@supabase/supabase-js'
 
-export type LabId = 'aiot' | 'av'
-export const LAB_TH: Record<LabId, string> = { aiot: 'AIoT & สมองกลฝังตัว', av: 'ภาพ เสียง และแสงอัจฉริยะ' }
+export type LabId = 'aiot' | 'av' | 'twin'
+export const LAB_TH: Record<LabId, string> = { aiot: 'AIoT & สมองกลฝังตัว', av: 'ภาพ เสียง และแสงอัจฉริยะ', twin: 'ดิจิทัลทวิน' }
 
 export interface ResultRecord {
   id: string

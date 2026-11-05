@@ -219,7 +219,7 @@ export default function Staff() {
                   <td className="px-2 py-1 font-mono">{r.quizScore == null ? '–' : `${r.quizScore}/${r.quizTotal}`}</td>
                   <td className="px-2 py-1 font-mono">{r.missionsPassed.length}/7</td>
                   <td className="px-2 py-1 text-xs">
-                    {{ plant: 'กระถาง', classroom: 'ห้องเรียน', pet: 'บ้านสัตว์เลี้ยง', 'concert-show': 'โชว์คอนเสิร์ต', concert: 'โชว์คอนเสิร์ต', exhibit: 'นิทรรศการ' }[r.challenge ?? ''] ?? '–'} {r.autoScore != null && `(${r.autoScore}/${r.challenge === 'exhibit' ? 2 : 4})`}
+                    {{ plant: 'กระถาง', classroom: 'ห้องเรียน', pet: 'บ้านสัตว์เลี้ยง', 'concert-show': 'โชว์คอนเสิร์ต', concert: 'โชว์คอนเสิร์ต', exhibit: 'นิทรรศการ', 'twin-guard': 'แฝดเฝ้าระวังหุ่น' }[r.challenge ?? ''] ?? '–'} {r.autoScore != null && `(${r.autoScore}/${r.challenge === 'exhibit' ? 2 : 4})`}
                   </td>
                   <td className="px-2 py-1 text-xs">{r.guided ? '🧭 พาทำ' : '💪 ทำเอง'}</td>
                 </tr>

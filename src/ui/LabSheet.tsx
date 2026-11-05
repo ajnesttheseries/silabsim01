@@ -17,13 +17,14 @@ interface Props<T extends string> {
   guideCompact?: ReactNode
   /** short status shown on the "show panel" bar while hidden, e.g. "🧭 ขั้น 2/5" */
   hiddenLabel?: string
-  accent: 'cyan' | 'fuchsia'
+  accent: 'cyan' | 'fuchsia' | 'teal'
   width: string
 }
 
 const ACCENT = {
   cyan: { active: 'bg-cyan-500/20 text-cyan-100', border: 'border-cyan-400/30', btn: 'text-cyan-100' },
   fuchsia: { active: 'bg-fuchsia-500/20 text-fuchsia-100', border: 'border-fuchsia-400/30', btn: 'text-fuchsia-100' },
+  teal: { active: 'bg-teal-500/20 text-teal-100', border: 'border-teal-400/30', btn: 'text-teal-100' },
 }
 
 /**

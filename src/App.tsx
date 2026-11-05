@@ -9,6 +9,8 @@ const Summary = lazy(() => import('./ui/Summary'))
 const Staff = lazy(() => import('./ui/Staff'))
 const AvLabPage = lazy(() => import('./av/ui/AvLabPage'))
 const AvSummary = lazy(() => import('./av/ui/AvSummary'))
+const TwinLabPage = lazy(() => import('./twin/ui/TwinLabPage'))
+const TwinSummary = lazy(() => import('./twin/ui/TwinSummary'))
 
 class ErrorBoundary extends Component<{ children: ReactNode }, { error: Error | null }> {
   state = { error: null as Error | null }
@@ -81,6 +83,8 @@ export default function App() {
         {route === 'staff' && <Staff />}
         {route === 'av' && <AvLabPage />}
         {route === 'avsummary' && <AvSummary />}
+        {route === 'twin' && <TwinLabPage />}
+        {route === 'twinsummary' && <TwinSummary />}
       </Suspense>
       <PresenterOverlay />
       <Toasts />
